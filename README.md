@@ -7,16 +7,16 @@ The purpose of the <b>Chain</b> is to hold on to an item, and update it in a fun
 
 # Manipulate data in a declarative way
 
-    Integer value = 10;
-    Integer finalValue = Chain.let(value)
-	    	// apply an action : log value :
-            .apply(i -> Log.d("TAG", "first value : " + i)) 
-	    	// map the item : convert to an int that holds the value multiplied by 10 :
-            .map(i -> i * 10) 
-	    	// apply action : log the new value :
-            .apply(i -> Log.d("TAG", "value Multiplied by 10 : " + i)) 
-	    	// retrieve the item to be stored in the Integer variable :
-            .call(); 
+    Integer value = 10;       
+	Integer finalValue = Chain.let(value)
+		// apply an action : print value
+		.apply(System.out::println)
+		// map the item : convert to an int that holds the value multiplied by 10
+		.map(i -> i * 10)
+		// apply action : print the new value
+		.apply(System.out::println)
+		// retrieve the item to be stored in the Integer variable
+		.call();
 
 # Handle optional values by making sure not to execute code if null
 
