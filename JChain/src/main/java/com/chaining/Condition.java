@@ -4,16 +4,15 @@ package com.chaining;
 import com.chaining.exceptions.RuntimeExceptionConverter;
 
 import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 
 /**
- * a function that will not execute the {@link Consumer} passed to the {@link #apply(Consumer)}
+ * a function that will not execute the {@link Consumer} passed to the {@link #then(Consumer)}
  * until the {@link Predicate} passed to it returned {@code true}, else it will change nothing
  * <p>
  * Created by Ahmed Adel Ismail on 10/29/2017.
  */
-public class Condition<T> implements Function<Consumer<T>, Chain<T>> {
+public class Condition<T> {
 
     private final Predicate<T> predicate;
     private final Chain<T> sourceChain;
@@ -30,7 +29,7 @@ public class Condition<T> implements Function<Consumer<T>, Chain<T>> {
      * @return the {@link Chain} with the updated state (if the {@link Predicate} returned
      * {@code true}, or will return it with no updates
      */
-    public Chain<T> apply(Consumer<T> action) {
+    public Chain<T> then(Consumer<T> action) {
         try {
             return invokeImplementation(action);
         } catch (Exception e) {

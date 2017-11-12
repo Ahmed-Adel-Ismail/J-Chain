@@ -90,12 +90,12 @@ public class Chain<T> implements
 
     /**
      * pass a {@link Predicate} that if it returned {@code true}, it's
-     * {@link Condition#apply(Consumer)} will update the current Object, else nothing
+     * {@link Condition#then(Consumer)} will update the current Object, else nothing
      * will happen
      *
      * @param predicate the {@link Predicate} that will decide weather the
-     *                  {@link Condition#apply(Consumer)} will update the current Object or not
-     * @return a {@link Condition} to supply it's {@link Condition#apply(Consumer)}
+     *                  {@link Condition#then(Consumer)} will update the current Object or not
+     * @return a {@link Condition} to supply it's {@link Condition#then(Consumer)}
      * {@link Consumer}
      */
     public Condition<T> when(Predicate<T> predicate) {

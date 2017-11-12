@@ -29,7 +29,7 @@ public class ConditionTest {
                         return testClass.text.equals("!");
                     }
                 })
-                .apply(new Consumer<TestClass>() {
+                .then(new Consumer<TestClass>() {
 
                     @Override
                     public void accept(@NonNull TestClass testClass) throws Exception {
@@ -58,7 +58,7 @@ public class ConditionTest {
                         return false;
                     }
                 })
-                .apply(new Consumer<TestClass>() {
+                .then(new Consumer<TestClass>() {
 
                     @Override
                     public void accept(@NonNull TestClass testClass) throws Exception {
@@ -86,7 +86,7 @@ public class ConditionTest {
                         throw new UnsupportedOperationException();
                     }
                 })
-                .apply(new Consumer<TestClass>() {
+                .then(new Consumer<TestClass>() {
 
                     @Override
                     public void accept(@NonNull TestClass testClass) throws Exception {
@@ -113,7 +113,7 @@ public class ConditionTest {
 
                     }
                 })
-                .apply(new Consumer<TestClass>() {
+                .then(new Consumer<TestClass>() {
 
                     @Override
                     public void accept(@NonNull TestClass testClass) throws Exception {
