@@ -19,11 +19,16 @@ The purpose of the <b>Chain</b> is to hold on to an item, and update it in a fun
 We have the <b>Chain.optional()</b> function, which accepts a value that can be null, and if the value is not null, it will invoke the <b>apply()</b> functions, you cannot exit the optional state unless you call <b>defaultIfEmpty()</b> :
 
     Integer nullableValue = null;
-    Integer finalNullableValue = Chain.optional(nullableValue) // pass a value that maybe null
-            .apply(i -> Log.d("TAG", "log if value is not null : " + i)) // log if not null
-            .defaultIfEmpty(10)                                // if null, set the item to 10
-            .map(i -> i * 10)                                  // multiply the value by 10
-            .call();                     // retrieve the value to be assigned to the variable
+    // pass a value that maybe null :
+    Integer finalNullableValue = Chain.optional(nullableValue) 
+    		// log if not null :
+            .apply(i -> Log.d("TAG", "log if value is not null : " + i)) 
+            // if null, set the item to 10 :
+			.defaultIfEmpty(10)             
+			// multiply the value by 10 :
+            .map(i -> i * 10)            
+			// retrieve the value to be assigned to the variable :
+            .call();                     
 
 # Handle exception in a better way than Try/Catch
 
@@ -56,9 +61,12 @@ We can convert the <b>Chain</b> to any Object or RxJava Stream through the <b>fl
         numbersWithNulls.add(4);
         numbersWithNulls.add(5);
     
-    Chain.let(numbersWithNulls)                            // list with null values
-            .apply(list -> list.remove(null))              // remove null values
-            .flatMap(Observable::fromIterable)             // convert to RxJava 2 Observable
+	// list with null values
+    Chain.let(numbersWithNulls)                            
+			// remove null values :
+            .apply(list -> list.remove(null))              
+			// convert to RxJava 2 Observable :
+            .flatMap(Observable::fromIterable)             
             .forEach(item -> Log.d("TAG", "not null item : " + item));
             
 We can even chain multiple RxJava streams 
@@ -66,10 +74,12 @@ We can even chain multiple RxJava streams
     Observable.fromIterable(Arrays.asList(1, 2, 3, 4, 5, 6))
             .filter(i -> i % 2 == 0)
             .toList()
-            .map(Chain::let)                   // convert to Chain
+			// convert to Chain :
+            .map(Chain::let)                   
             .blockingGet()
             .apply(list -> list.add(5))
-            .flatMap(Observable::fromIterable) // start another stream
+			// start another stream :
+            .flatMap(Observable::fromIterable) 
             .filter(i -> i % 2 != 0)
             .toList()
             .blockingGet();
@@ -86,7 +96,8 @@ We can pass a Collection so we can check if the current item stored in the CHain
                     Log.d("TAG", pair.getValue0() + " is in the passed list");
                 }
             })
-            .map(Pair::getValue0)    // convert the current Pair back to the original item
+			// convert the current Pair back to the original item :
+            .map(Pair::getValue0)    
             .call();
             
 # when() - then() operations :
@@ -99,10 +110,13 @@ For flow control, instead of the If/Else or Switch/Case blocks, we have two func
 
     Chain.let(numbers)
             .when(list -> list.contains(2))
-            .then(list -> Log.d("TAG", "list contains value 2"))  // will invoke this foperation
+			// will invoke this foperation :
+            .then(list -> Log.d("TAG", "list contains value 2"))  
             .when(list -> list.contains(3))
-            .then(list -> Log.d("TAG", "list contains value 3"))  // will skip this operation
-            .apply(List::clear);    // clear the list any way
+			// will skip this operation :
+            .then(list -> Log.d("TAG", "list contains value 3"))  
+			// clear the list any way :
+            .apply(List::clear);    
             
 # Android example :
 
@@ -113,7 +127,8 @@ The entry point for the full API is through the <b>Chain</b> class, an example f
         ...
         Chain.let(this)
                 .apply(MainActivity::doSomething)
-                .debug(MainActivity::logSomethingDone)    // invoke this function in Debugging mode only
+				// invoke this function in Debugging mode only :
+                .debug(MainActivity::logSomethingDone)    
                 .map(MainActivity::getClass)
                 .map(Class::getName)
                 .in(liveActivitiesNames)
