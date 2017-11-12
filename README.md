@@ -60,8 +60,7 @@ We can execute the risky code in a <b>Chain.guard()</b> function, in this case w
 
 We can convert the <b>Chain</b> to any Object or RxJava Stream through the <b>flatMap()</b> 
 
-
-    List<Integer> numbersWithNulls = new ArrayList<>();
+	List<Integer> numbersWithNulls = new ArrayList<>();
         numbersWithNulls.add(1);
         numbersWithNulls.add(null);
         numbersWithNulls.add(2);
@@ -77,10 +76,11 @@ We can convert the <b>Chain</b> to any Object or RxJava Stream through the <b>fl
 			// convert to RxJava 2 Observable :
             .flatMap(Observable::fromIterable)             
             .forEach(item -> Log.d("TAG", "not null item : " + item));
+    
             
 We can even chain multiple RxJava streams 
 
-    Observable.fromIterable(Arrays.asList(1, 2, 3, 4, 5, 6))
+ 	Observable.fromIterable(Arrays.asList(1, 2, 3, 4, 5, 6))
             .filter(i -> i % 2 == 0)
             .toList()
 			// convert to Chain :
@@ -97,8 +97,9 @@ We can even chain multiple RxJava streams
 
 We can pass a Collection so we can check if the current item stored in the CHain is available in the passed Collection or not, this is through invoking the <b>in()</b> function, this function returns a <b>Pair</b> Object, which holds the original item in it's <b>Pair.getValue0()</b>, and boolean indicating the result of the search in the <b>Pair.getValue1()</b>, if the item was found in the collection, this value will be true, else it will be false :
 
-    List<Integer> evenNumbers = Arrays.asList(2, 4, 6, 8, 10);
-    Chain.let(4)
+	List<Integer> evenNumbers = Arrays.asList(2, 4, 6, 8, 10);
+    
+	Chain.let(4)
             .in(evenNumbers)
             .apply(pair -> {
                 if (pair.getValue1()) {
@@ -113,7 +114,7 @@ We can pass a Collection so we can check if the current item stored in the CHain
 
 For flow control, instead of the If/Else or Switch/Case blocks, we have two functions, <b>when()</b> and <b>then()</b>, the <b>when()</b> method takes a <b>Predicate</b> that returns either true or false, if it returned true, the <b>then()</b> method will be executed, else it will skip it's execution :
 
-    List<Integer> numbers = new ArrayList<>();
+ 	List<Integer> numbers = new ArrayList<>();
     numbers.add(1);
     numbers.add(2);
 
@@ -125,13 +126,13 @@ For flow control, instead of the If/Else or Switch/Case blocks, we have two func
 			// will skip this operation :
             .then(list -> Log.d("TAG", "list contains value 3"))  
 			// clear the list any way :
-            .apply(List::clear);    
+            .apply(List::clear);   
             
 # Android example :
 
 The entry point for the full API is through the <b>Chain</b> class, an example from an Android Activity will be as follows :
 
-    @Override
+ 	@Override
     protected void onCreate(Bundle savedInstanceState) {
         ...
         Chain.let(this)
