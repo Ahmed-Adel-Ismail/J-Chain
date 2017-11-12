@@ -199,7 +199,7 @@ public class ChainTest {
         boolean result = Chain.let(testClass)
                 .in(testClasses)
                 .call()
-                .second();
+                .getValue1();
 
         assertTrue(result);
 
@@ -214,7 +214,7 @@ public class ChainTest {
         boolean result = Chain.let(testClass)
                 .in(testClasses)
                 .call()
-                .second();
+                .getValue1();
 
         assertFalse(result);
 
@@ -237,7 +237,7 @@ public class ChainTest {
                     }
                 })
                 .call()
-                .second();
+                .getValue1();
 
         assertTrue(result);
 
@@ -260,7 +260,7 @@ public class ChainTest {
                     }
                 })
                 .call()
-                .second();
+                .getValue1();
 
         assertFalse(result);
 

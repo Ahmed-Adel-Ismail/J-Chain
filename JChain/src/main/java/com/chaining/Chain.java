@@ -4,6 +4,8 @@ package com.chaining;
 import com.chaining.exceptions.RuntimeExceptionConverter;
 import com.chaining.interfaces.DefaultIfEmpty;
 
+import org.javatuples.Pair;
+
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
@@ -69,12 +71,16 @@ public class Chain<T> implements
      * @return a {@link Guard} to handle safe execution
      */
     public Guard<T> guard(Consumer<T> action) {
-        return new Guard<>(toCallable(new Function<Consumer<T>, T>() {
+        return new Guard<>(toCallable(invokeGuardFunction(), action), configuration);
+    }
+
+    private Function<Consumer<T>, T> invokeGuardFunction() {
+        return new Function<Consumer<T>, T>() {
             @Override
             public T apply(@NonNull Consumer<T> action1) throws Exception {
-                return Chain.this.invokeGuard(action1);
+                return invokeGuard(action1);
             }
-        }, action), configuration);
+        };
     }
 
     private T invokeGuard(Consumer<T> action) throws Exception {
@@ -102,11 +108,11 @@ public class Chain<T> implements
      * comparison, you can use {@link #in(Collection, BiPredicate)} instead
      *
      * @param collection the {@link Collection} that holds the items
-     * @return a new {@link Chain} holding a {@link Tuple}, where {@link Tuple#first()} will
-     * return the original Object, and {@link Tuple#second()} will return a boolean indicating
+     * @return a new {@link Chain} holding a {@link Pair}, where {@link Pair#getValue0()} will
+     * return the original Object, and {@link Pair#getValue1()} will return a boolean indicating
      * weather the the Object was found in the passed {@link Collection} or not
      */
-    public Chain<Tuple<T, Boolean>> in(Collection<T> collection) {
+    public Chain<Pair<T, Boolean>> in(Collection<T> collection) {
         return in(collection, new BiPredicate<T, T>() {
             @Override
             public boolean test(@NonNull T t, @NonNull T o) throws Exception {
@@ -124,38 +130,23 @@ public class Chain<T> implements
      *                   {@link Collection} will be passed as the second parameter, if the returned
      *                   value is {@code true}, this means that both items are equal, if
      *                   the returned item is {@code false}, they do not match
-     * @return a new {@link Chain} holding a {@link Tuple}, where {@link Tuple#first()} will
-     * return the original Object, and {@link Tuple#second()} will return a boolean indicating
+     * @return a new {@link Chain} holding a {@link Pair}, where {@link Pair#getValue0()} will
+     * return the original Object, and {@link Pair#getValue1()}  will return a boolean indicating
      * weather the the Object was found in the passed {@link Collection} or not
      */
-    public Chain<Tuple<T, Boolean>> in(Collection<T> collection, BiPredicate<T, T> comparator) {
+    public Chain<Pair<T, Boolean>> in(Collection<T> collection, BiPredicate<T, T> comparator) {
         boolean inCollection = false;
         if (collection != null && !collection.isEmpty()) {
             inCollection = isObjectInCollection(collection, comparator);
         }
-        return new Chain<>(Tuple.from(item, inCollection), configuration);
+        return new Chain<>(Pair.with(item, inCollection), configuration);
     }
 
     private Boolean isObjectInCollection(Collection<T> collection, final BiPredicate<T, T> comparator) {
         return new Chain<>(collection, configuration)
-                .apply(new Consumer<Collection<T>>() {
-                    @Override
-                    public void accept(Collection<T> items) throws Exception {
-                        items.remove(null);
-                    }
-                })
-                .flatMap(new Function<Collection<T>, Observable<T>>() {
-                    @Override
-                    public Observable<T> apply(@NonNull Collection<T> source) throws Exception {
-                        return Observable.fromIterable(source);
-                    }
-                })
-                .any(new Predicate<T>() {
-                    @Override
-                    public boolean test(@NonNull T item) throws Exception {
-                        return comparator.test(Chain.this.item, item);
-                    }
-                })
+                .apply(removeNullItems())
+                .flatMap(toObservableFromIterable())
+                .any(hasPassedComparatorTest(comparator))
                 .blockingGet();
     }
 
@@ -187,6 +178,33 @@ public class Chain<T> implements
             throw new RuntimeExceptionConverter().apply(e);
         }
         return this;
+    }
+
+    private Consumer<Collection<T>> removeNullItems() {
+        return new Consumer<Collection<T>>() {
+            @Override
+            public void accept(Collection<T> items) throws Exception {
+                items.remove(null);
+            }
+        };
+    }
+
+    private Function<Collection<T>, Observable<T>> toObservableFromIterable() {
+        return new Function<Collection<T>, Observable<T>>() {
+            @Override
+            public Observable<T> apply(@NonNull Collection<T> source) throws Exception {
+                return Observable.fromIterable(source);
+            }
+        };
+    }
+
+    private Predicate<T> hasPassedComparatorTest(final BiPredicate<T, T> comparator) {
+        return new Predicate<T>() {
+            @Override
+            public boolean test(@NonNull T item) throws Exception {
+                return comparator.test(Chain.this.item, item);
+            }
+        };
     }
 
     /**

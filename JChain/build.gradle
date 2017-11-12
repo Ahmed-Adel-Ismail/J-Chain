@@ -5,6 +5,7 @@ group = 'com.github.Ahmed-Adel-Ismail'
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'io.reactivex.rxjava2:rxjava:2.1.6'
+    compile 'org.javatuples:javatuples:1.2'
     compile 'com.github.Ahmed-Adel-Ismail:J-Curry:0.0.5'
 }
 

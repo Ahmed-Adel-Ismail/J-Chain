@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/J-Chain.iml" filepath="$PROJECT_DIR$/J-Chain.iml" />
-      <module fileurl="file://$PROJECT_DIR$/JChain/jchain.iml" filepath="$PROJECT_DIR$/JChain/jchain.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JChain/JChain.iml" filepath="$PROJECT_DIR$/JChain/JChain.iml" />
       <module fileurl="file://$PROJECT_DIR$/myapplication/myapplication.iml" filepath="$PROJECT_DIR$/myapplication/myapplication.iml" />
     </modules>
   </component>
