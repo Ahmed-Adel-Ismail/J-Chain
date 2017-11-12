@@ -23,16 +23,21 @@ The purpose of the <b>Chain</b> is to hold on to an item, and update it in a fun
 We have the <b>Chain.optional()</b> function, which accepts a value that can be null, and if the value is not null, it will invoke the <b>apply()</b> functions, you cannot exit the optional state unless you call <b>defaultIfEmpty()</b> :
 
     Integer nullableValue = null;
-    // pass a value that maybe null :
-    Integer finalNullableValue = Chain.optional(nullableValue) 
-    		// log if not null :
-            .apply(i -> Log.d("TAG", "log if value is not null : " + i)) 
-            // if null, set the item to 10 :
-			.defaultIfEmpty(10)             
+	
+	// pass a value that maybe null :
+	String finalNullableValue = Chain.optional(nullableValue)
+			// print if not null :
+			.apply(System.out::println)
+			// if null, set the item to 10 :
+			.defaultIfEmpty(10)
 			// multiply the value by 10 :
-            .map(i -> i * 10)            
+			.map(i -> i * 10)
+			// print the final value :
+			.apply(System.out::println)
+			// convert the integer to String
+			.map(String::valueOf)
 			// retrieve the value to be assigned to the variable :
-            .call();                     
+			.call();                 
 
 # Handle exception in a better way than Try/Catch
 
