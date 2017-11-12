@@ -9,10 +9,14 @@ The purpose of the <b>Chain</b> is to hold on to an item, and update it in a fun
 
     Integer value = 10;
     Integer finalValue = Chain.let(value)
-            .apply(i -> Log.d("TAG", "first value : " + i)) // apply an action : log value
-            .map(i -> i * 10) // map the item : convert to an int that holds the value multiplied by 10
-            .apply(i -> Log.d("TAG", "value Multiplied by 10 : " + i)) // apply action : log the new value
-            .call(); // retrieve the item to be stored in the Integer variable
+	    	// apply an action : log value :
+            .apply(i -> Log.d("TAG", "first value : " + i)) 
+	    	// map the item : convert to an int that holds the value multiplied by 10 :
+            .map(i -> i * 10) 
+	    	// apply action : log the new value :
+            .apply(i -> Log.d("TAG", "value Multiplied by 10 : " + i)) 
+	    	// retrieve the item to be stored in the Integer variable :
+            .call(); 
 
 # Handle optional values by making sure not to execute code if null
 
