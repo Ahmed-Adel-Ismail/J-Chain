@@ -1,11 +1,10 @@
 package ahmedadekismail.myapplication;
 
-import android.util.Log;
-
 import com.chaining.Chain;
 
 import org.javatuples.Pair;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,23 +16,38 @@ import io.reactivex.Observable;
 
 public class Samples {
 
-    public static void main() {
+    public static void main(String...args) {
 
         // manipulate data in a declarative way
         Integer value = 10;
+
         Integer finalValue = Chain.let(value)
-                .apply(i -> Log.d("TAG", "first value : " + i))
+                // apply an action : print value
+                .apply(System.out::println)
+                // map the item : convert to an int that holds the value multiplied by 10
                 .map(i -> i * 10)
-                .apply(i -> Log.d("TAG", "value Multiplied by 10 : " + i))
+                // apply action : print the new value
+                .apply(System.out::println)
+                // retrieve the item to be stored in the Integer variable
                 .call();
 
 
         // handle optional values by making sure not to execute code if null
         Integer nullableValue = null;
-        Integer finalNullableValue = Chain.optional(nullableValue)
-                .apply(i -> Log.d("TAG", "log if value is not null : " + i))
+
+        // pass a value that maybe null :
+        String finalNullableValue = Chain.optional(nullableValue)
+                // print if not null :
+                .apply(System.out::println)
+                // if null, set the item to 10 :
                 .defaultIfEmpty(10)
+                // multiply the value by 10 :
                 .map(i -> i * 10)
+                // print the final value :
+                .apply(System.out::println)
+                // convert the integer to String
+                .map(String::valueOf)
+                // retrieve the value to be assigned to the variable :
                 .call();
 
         // handle exception in a better way than Try/Catch
@@ -53,10 +67,19 @@ public class Samples {
 
 
         // convert to RxJava2 stream or any other stream through flatMap()
-        Chain.let(Arrays.asList(1, null, 2, null, 3, 4, 5))
+        List<Integer> numbersWithNulls = new ArrayList<>();
+        numbersWithNulls.add(1);
+        numbersWithNulls.add(null);
+        numbersWithNulls.add(2);
+        numbersWithNulls.add(null);
+        numbersWithNulls.add(3);
+        numbersWithNulls.add(4);
+        numbersWithNulls.add(5);
+
+        Chain.let(numbersWithNulls)
                 .apply(list -> list.remove(null))
                 .flatMap(Observable::fromIterable)
-                .forEach(item -> Log.d("TAG", "not null item : " + item));
+                .forEach(System.out::println);
 
 
         // join multiple RxJava2 streams
@@ -78,11 +101,26 @@ public class Samples {
                 .in(evenNumbers)
                 .apply(pair -> {
                     if (pair.getValue1()) {
-                        Log.d("TAG", pair.getValue0() + " is in the passed list");
+                        System.out.println(pair.getValue0() + " is in the passed list");
                     }
                 })
                 .map(Pair::getValue0)
                 .call();
+
+
+        // when() and then()
+        List<Integer> numbers = new ArrayList<>();
+        numbers.add(1);
+        numbers.add(2);
+
+        Chain.let(numbers)
+                .when(list -> list.contains(2))
+                .then(list -> System.out.println("list contains value 2"))
+                .when(list -> list.contains(3))
+                .then(list -> System.out.println("list contains value 3"))
+                .apply(List::clear);
+
+
 
     }
 

@@ -28,17 +28,16 @@ public class MainActivity extends AppCompatActivity {
                 .map(Class::getName)
                 .in(liveActivitiesNames)
                 .when(Pair::getValue1)
-                .apply(pair -> Log.d(pair.getValue0(), "Activity is alive"));
-
+                .then(pair -> Log.d(pair.getValue0(), "Activity is alive"));
     }
 
 
     private void doSomething() {
-
+        // ...
     }
 
     private static void logSomethingDone(MainActivity mainActivity) {
-
+        // ...
     }
 
 

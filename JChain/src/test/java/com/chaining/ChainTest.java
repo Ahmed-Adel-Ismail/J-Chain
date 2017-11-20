@@ -1,13 +1,14 @@
 package com.chaining;
 
-
-
+import org.javatuples.Pair;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.Callable;
 
 import io.reactivex.annotations.NonNull;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.BiPredicate;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
@@ -18,6 +19,29 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class ChainTest {
+
+
+    @Test
+    public void callWithCallableThenReturnTheCallableResult() {
+        TestClass testClass = Chain.call(new Callable<TestClass>() {
+            @Override
+            public TestClass call() throws Exception {
+                return new TestClass("!");
+            }
+        }).call();
+
+        assertEquals("!", testClass.text);
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void callWithCrashingCallableThenThrowException() {
+        Chain.call(new Callable<TestClassTwo>() {
+            @Override
+            public TestClassTwo call() throws Exception {
+                throw new UnsupportedOperationException();
+            }
+        });
+    }
 
     @Test
     public void guardWithSetTextOnTestClassThenFindTextValueUpdated() {
@@ -75,7 +99,7 @@ public class ChainTest {
 
 
     @Test
-    public void applyWithSetTextOnTestClassThenFindTextValueUpdated() {
+    public void applyConsumerWithSetTextOnTestClassThenFindTextValueUpdated() {
         TestClass testClass = Chain.let(new TestClass())
                 .apply(new Consumer<TestClass>() {
                     @Override
@@ -90,7 +114,7 @@ public class ChainTest {
 
 
     @Test(expected = UnsupportedOperationException.class)
-    public void applyWithExceptionThenThrowException() {
+    public void applyConsumerWithExceptionThenThrowException() {
         Chain.let(new TestClass())
                 .apply(new Consumer<TestClass>() {
                     @Override
@@ -101,6 +125,31 @@ public class ChainTest {
                 .call();
     }
 
+    @Test
+    public void applyActionWithSetTextOnTestClassThenFindTextValueUpdated() {
+        final boolean[] result = {false};
+        Chain.let(new TestClass())
+                .apply(new Action() {
+                    @Override
+                    public void run() throws Exception {
+                        result[0] = true;
+                    }
+                });
+
+        assertTrue(result[0]);
+    }
+
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void applyActionWithExceptionThenThrowException() {
+        Chain.let(new TestClass())
+                .apply(new Action() {
+                    @Override
+                    public void run() throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                });
+    }
 
     @Test
     public void mapWithTestClassToTestClassTwoThenReturnTestClassTwo() {
@@ -295,6 +344,105 @@ public class ChainTest {
 
         assertEquals("1", testClassTwo.text);
     }
+
+
+    @Test
+    public void toWithSameTypeThenReturnNewChain() {
+        TestClass result = Chain.let(new TestClass("1"))
+                .to(new TestClass("2"))
+                .call();
+
+        assertEquals("2", result.text);
+    }
+
+    @Test
+    public void toWithSameTypeCallableThenReturnNewChain() {
+
+        TestClass result = Chain.let(new TestClass("1"))
+                .to(new Callable<TestClass>() {
+                    @Override
+                    public TestClass call() throws Exception {
+                        return new TestClass("2");
+                    }
+                })
+                .call();
+
+        assertEquals("2", result.text);
+
+    }
+
+    @Test
+    public void toWithDifferentTypeThenReturnNewChain() {
+        TestClassTwo result = Chain.let(new TestClass("1"))
+                .to(new TestClassTwo("2"))
+                .call();
+
+        assertEquals("2", result.text);
+    }
+
+    @Test
+    public void toWithDifferentTypeCallableThenReturnNewChain() {
+
+        TestClassTwo result = Chain.let(new TestClass("1"))
+                .to(new Callable<TestClassTwo>() {
+                    @Override
+                    public TestClassTwo call() throws Exception {
+                        return new TestClassTwo("2");
+                    }
+                })
+                .call();
+
+        assertEquals("2", result.text);
+
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void toWithCrashingTestClassCallableThenThrowException() {
+        Chain.let(new TestClass())
+                .to(new Callable<TestClass>() {
+                    @Override
+                    public TestClass call() throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                });
+    }
+
+
+    @Test
+    public void andWithAnotherItemThenReturnACollectorWithTwoItems() {
+        Collector<Boolean> result = Chain.let(true).and(false);
+        assertTrue(result.items.get(0) && !result.items.get(1));
+    }
+
+    @Test
+    public void pairWithAnotherItemThenReturnAPairOfTwoItemsInChain() {
+        Chain<Pair<Boolean, Integer>> result = Chain.let(true).pair(0);
+        assertTrue(result.call().getValue0() && result.call().getValue1() == 0);
+    }
+
+    @Test
+    public void pairFunctionWithAnotherItemThenReturnAPairOfTwoItemsInChain() {
+        Chain<Pair<Boolean, Integer>> result = Chain.let(true)
+                .pair(new Function<Boolean, Integer>() {
+                    @Override
+                    public Integer apply(@NonNull Boolean aBoolean) throws Exception {
+                        return 0;
+                    }
+                });
+        assertTrue(result.call().getValue0() && result.call().getValue1() == 0);
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void pairFunctionWithCrashThenThrowException() {
+        Chain.let(true)
+                .pair(new Function<Boolean, Integer>() {
+                    @Override
+                    public Integer apply(@NonNull Boolean aBoolean) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                });
+    }
+
 
 }
 

@@ -1,8 +1,11 @@
 package com.chaining;
 
 
+import com.chaining.annotations.SideEffect;
 import com.chaining.exceptions.RuntimeExceptionConverter;
+import com.chaining.interfaces.And;
 import com.chaining.interfaces.DefaultIfEmpty;
+import com.chaining.interfaces.Monad;
 
 import org.javatuples.Pair;
 
@@ -13,12 +16,14 @@ import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.annotations.Nullable;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.BiPredicate;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 
 import static com.functional.curry.Curry.toCallable;
+
 
 /**
  * a class that encapsulates chaining multiple operations to be invoked on an Object through
@@ -30,7 +35,9 @@ import static com.functional.curry.Curry.toCallable;
 public class Chain<T> implements
         Function<Consumer<T>, Chain<T>>,
         Callable<T>,
-        DefaultIfEmpty<T> {
+        DefaultIfEmpty<T>,
+        And<T>,
+        Monad<T> {
 
     final T item;
     final ChainConfigurationImpl configuration;
@@ -54,7 +61,7 @@ public class Chain<T> implements
     }
 
     /**
-     * start a chain of Functions
+     * start a chain of Functions throw passing an item
      *
      * @param item the item that will be the root of this chain, should not be null
      * @param <T>  the type of this root Object
@@ -62,6 +69,22 @@ public class Chain<T> implements
      */
     public static <T> Chain<T> let(@NonNull T item) {
         return new Chain<>(item, ChainConfigurationImpl.getInstance(null));
+    }
+
+    /**
+     * start a chain of Functions throw passing a {@link Callable} that will return the root item
+     *
+     * @param callable the {@link Callable} that will return the root item for this {@link Chain},
+     *                 should not be {@code null}
+     * @param <T>      the type of this root Object
+     * @return a new {@link Chain}
+     */
+    public static <T> Chain<T> call(@NonNull Callable<T> callable) {
+        try {
+            return new Chain<>(callable.call(), ChainConfigurationImpl.getInstance(null));
+        } catch (Exception e) {
+            throw new RuntimeExceptionConverter().apply(e);
+        }
     }
 
     /**
@@ -77,7 +100,7 @@ public class Chain<T> implements
     private Function<Consumer<T>, T> invokeGuardFunction() {
         return new Function<Consumer<T>, T>() {
             @Override
-            public T apply(@NonNull Consumer<T> action1) throws Exception {
+            public T apply(Consumer<T> action1) throws Exception {
                 return invokeGuard(action1);
             }
         };
@@ -99,7 +122,22 @@ public class Chain<T> implements
      * {@link Consumer}
      */
     public Condition<T> when(Predicate<T> predicate) {
-        return new Condition<>(this, predicate);
+        return Condition.createNormal(this, predicate);
+    }
+
+
+    /**
+     * pass a {@link Predicate} that if it returned {@code false}, it's
+     * {@link Condition#then(Consumer)} will update the current Object, else nothing
+     * will happen
+     *
+     * @param predicate the {@link Predicate} that will decide weather the
+     *                  {@link Condition#then(Consumer)} will update the current Object or not
+     * @return a {@link Condition} to supply it's {@link Condition#then(Consumer)}
+     * {@link Consumer}
+     */
+    public Condition<T> whenNot(Predicate<T> predicate) {
+        return Condition.createNegated(this, predicate);
     }
 
     /**
@@ -113,12 +151,7 @@ public class Chain<T> implements
      * weather the the Object was found in the passed {@link Collection} or not
      */
     public Chain<Pair<T, Boolean>> in(Collection<T> collection) {
-        return in(collection, new BiPredicate<T, T>() {
-            @Override
-            public boolean test(@NonNull T t, @NonNull T o) throws Exception {
-                return t.equals(o);
-            }
-        });
+        return in(collection, isEqual());
     }
 
     /**
@@ -131,7 +164,7 @@ public class Chain<T> implements
      *                   value is {@code true}, this means that both items are equal, if
      *                   the returned item is {@code false}, they do not match
      * @return a new {@link Chain} holding a {@link Pair}, where {@link Pair#getValue0()} will
-     * return the original Object, and {@link Pair#getValue1()}  will return a boolean indicating
+     * return the original Object, and {@link Pair#getValue1()} will return a boolean indicating
      * weather the the Object was found in the passed {@link Collection} or not
      */
     public Chain<Pair<T, Boolean>> in(Collection<T> collection, BiPredicate<T, T> comparator) {
@@ -142,21 +175,25 @@ public class Chain<T> implements
         return new Chain<>(Pair.with(item, inCollection), configuration);
     }
 
-    private Boolean isObjectInCollection(Collection<T> collection, final BiPredicate<T, T> comparator) {
+    private BiPredicate<T, T> isEqual() {
+        return new BiPredicate<T, T>() {
+            @Override
+            public boolean test(T t, T o) throws Exception {
+                return t.equals(o);
+            }
+        };
+    }
+
+    private Boolean isObjectInCollection(final Collection<T> collection,
+                                         final BiPredicate<T, T> comparator) {
         return new Chain<>(collection, configuration)
-                .apply(removeNullItems())
+                .apply(removeNulls())
                 .flatMap(toObservableFromIterable())
-                .any(hasPassedComparatorTest(comparator))
+                .any(hasComparatorTestPassed(comparator))
                 .blockingGet();
     }
 
-    /**
-     * a flat map function that converts this {@link Chain} to another Object
-     *
-     * @param flatMapper a function that will convert the current {@link Chain} to another Object
-     * @param <R>        the type of the new Object
-     * @return the new Object
-     */
+    @Override
     public <R> R flatMap(@NonNull Function<T, R> flatMapper) {
         try {
             return flatMapper.apply(item);
@@ -180,7 +217,7 @@ public class Chain<T> implements
         return this;
     }
 
-    private Consumer<Collection<T>> removeNullItems() {
+    private Consumer<Collection<T>> removeNulls() {
         return new Consumer<Collection<T>>() {
             @Override
             public void accept(Collection<T> items) throws Exception {
@@ -192,19 +229,36 @@ public class Chain<T> implements
     private Function<Collection<T>, Observable<T>> toObservableFromIterable() {
         return new Function<Collection<T>, Observable<T>>() {
             @Override
-            public Observable<T> apply(@NonNull Collection<T> source) throws Exception {
+            public Observable<T> apply(Collection<T> source) {
                 return Observable.fromIterable(source);
             }
         };
     }
 
-    private Predicate<T> hasPassedComparatorTest(final BiPredicate<T, T> comparator) {
+    private Predicate<T> hasComparatorTestPassed(final BiPredicate<T, T> comparator) {
         return new Predicate<T>() {
             @Override
-            public boolean test(@NonNull T item) throws Exception {
+            public boolean test(T item) throws Exception {
                 return comparator.test(Chain.this.item, item);
             }
         };
+    }
+
+    /**
+     * apply an action before going to the next step in this chain, this operation is
+     * intended for side-effects
+     *
+     * @param action an {@link Action} to be executed
+     * @return {@code this} instance for chaining
+     */
+    @SideEffect("usually this operation is done for side-effects")
+    public Chain<T> apply(Action action) {
+        try {
+            action.run();
+        } catch (Exception e) {
+            throw new RuntimeExceptionConverter().apply(e);
+        }
+        return this;
     }
 
     /**
@@ -218,6 +272,31 @@ public class Chain<T> implements
         try {
             return new Chain<>(mapper.apply(item), configuration);
         } catch (Throwable e) {
+            throw new RuntimeExceptionConverter().apply(e);
+        }
+    }
+
+    /**
+     * convert the current {@link Chain} to another {@link Chain}
+     *
+     * @param item an item to be the root for the new {@link Chain}
+     * @return a new {@link Chain}
+     */
+    public <R> Chain<R> to(@NonNull R item) {
+        return new Chain<>(item, ChainConfigurationImpl.getInstance(null));
+    }
+
+    /**
+     * convert the current {@link Chain} to another {@link Chain}
+     *
+     * @param itemCallable a {@link Callable} that will return an item to be the root for the new
+     *                     {@link Chain}
+     * @return a new {@link Chain}
+     */
+    public <R> Chain<R> to(@NonNull Callable<R> itemCallable) {
+        try {
+            return new Chain<>(itemCallable.call(), ChainConfigurationImpl.getInstance(null));
+        } catch (Exception e) {
             throw new RuntimeExceptionConverter().apply(e);
         }
     }
@@ -253,4 +332,42 @@ public class Chain<T> implements
         }
         return this;
     }
+
+
+    @Override
+    public Collector<T> and(T item) {
+        return new Collector<T>(configuration)
+                .and(this.item)
+                .and(item);
+    }
+
+    /**
+     * pair the current item with another item
+     *
+     * @param item another item to be paired with
+     * @param <R>  the other item type
+     * @return a {@link Chain} that holds a {@link Pair}, holding the current item as it's
+     * first value, and the new Item as a second Value
+     */
+    public <R> Chain<Pair<T, R>> pair(R item) {
+        return new Chain<>(Pair.with(this.item, item), configuration);
+    }
+
+    /**
+     * pair the current item with another item which is the result of the passed function
+     *
+     * @param pairedItemMapper a function that it's result will be used to be put in a {@link Pair}
+     * @param <R>              the other item type
+     * @return a {@link Chain} that holds a {@link Pair}, holding the current item as it's
+     * first value, and the function result as a second value
+     */
+    public <R> Chain<Pair<T, R>> pair(Function<T, R> pairedItemMapper) {
+        try {
+            return new Chain<>(Pair.with(item, pairedItemMapper.apply(item)), configuration);
+        } catch (Exception e) {
+            throw new RuntimeExceptionConverter().apply(e);
+        }
+    }
+
+
 }
