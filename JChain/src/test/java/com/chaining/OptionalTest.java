@@ -3,6 +3,7 @@ package com.chaining;
 import org.junit.Test;
 
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 
 import static org.junit.Assert.assertEquals;
 
@@ -26,7 +27,7 @@ public class OptionalTest {
 
 
     @Test
-    public void applyWithTestClassValueForNullChainThenDoNothing() {
+    public void applyWithNullChainThenDoNothing() {
 
         TestClass testClass = new Optional<>(Chain.<TestClass>let(null))
                 .apply(new Consumer<TestClass>() {
@@ -71,6 +72,51 @@ public class OptionalTest {
                 .call();
 
         assertEquals("2", testClass.text);
+    }
+
+    @Test
+    public void mapWithTestClassTwoForTestClassChainThenReturnTestClassTwo() {
+
+        TestClassTwo testClassTwo = new Optional<>(Chain.let(new TestClass()))
+                .map(new Function<TestClass, TestClassTwo>() {
+                    @Override
+                    public TestClassTwo apply(TestClass testClass) {
+                        return new TestClassTwo("1");
+                    }
+                })
+                .defaultIfEmpty(new TestClassTwo("2"))
+                .call();
+
+        assertEquals("1", testClassTwo.text);
+    }
+
+
+    @Test
+    public void mapWithNullChainThenDoNothing() {
+
+        TestClassTwo testClassTwo = new Optional<>(Chain.<TestClass>let(null))
+                .map(new Function<TestClass, TestClassTwo>() {
+                    @Override
+                    public TestClassTwo apply(TestClass testClass) {
+                        return new TestClassTwo("1");
+                    }
+                })
+                .defaultIfEmpty(new TestClassTwo("2"))
+                .call();
+
+        assertEquals("2", testClassTwo.text);
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void mapWithCrashThenThrowException() {
+
+        new Optional<>(Chain.let(new TestClass()))
+                .map(new Function<TestClass, TestClassTwo>() {
+                    @Override
+                    public TestClassTwo apply(TestClass testClass) {
+                        throw new UnsupportedOperationException();
+                    }
+                });
     }
 
 }

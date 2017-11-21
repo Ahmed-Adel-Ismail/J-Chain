@@ -6,6 +6,7 @@ import com.chaining.exceptions.RuntimeExceptionConverter;
 
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 
 /**
@@ -43,14 +44,14 @@ public class Condition<T> {
      */
     public Chain<T> then(Consumer<T> action) {
         try {
-            return invokeImplementation(action);
+            return invokeThenImplementation(action);
         } catch (Exception e) {
             throw new RuntimeExceptionConverter().apply(e);
         }
 
     }
 
-    private Chain<T> invokeImplementation(Consumer<T> action) throws Exception {
+    private Chain<T> invokeThenImplementation(Consumer<T> action) throws Exception {
         if (isSourceChainUpdateAccepted())
             return sourceChain.apply(action);
         else {
@@ -59,6 +60,11 @@ public class Condition<T> {
     }
 
     private boolean isSourceChainUpdateAccepted() throws Exception {
+
+        if (sourceChain.item == null) {
+            return false;
+        }
+
         boolean expression = predicate.test(sourceChain.item);
         if (negateExpression) {
             expression = !expression;
@@ -77,15 +83,39 @@ public class Condition<T> {
     @SideEffect("usually this operation is done for side-effects")
     public Chain<T> then(Action action) {
         try {
-            return invokeImplementation(action);
+            return invokeThenImplementation(action);
         } catch (Exception e) {
             throw new RuntimeExceptionConverter().apply(e);
         }
 
     }
 
-    private Chain<T> invokeImplementation(Action action) throws Exception {
+    private Chain<T> invokeThenImplementation(Action action) throws Exception {
         if (isSourceChainUpdateAccepted()) action.run();
         return sourceChain;
+    }
+
+    /**
+     * invoke the passed action based on the previous {@link Predicate} result, this action will
+     * cause the item stored to be changed to the expected type (it will return a new
+     * {@link Optional} holding the mapping result)
+     *
+     * @param mapper the action to convert the current item into a new item
+     * @return the {@link Optional} with the updated state based on the previous {@link Predicate}
+     */
+    public <R> Optional<R> thenMap(Function<T, R> mapper) {
+        try {
+            return new Optional<>(mappedChain(mapper));
+        } catch (Exception e) {
+            throw new RuntimeExceptionConverter().apply(e);
+        }
+    }
+
+    private <R> Chain<R> mappedChain(Function<T, R> mapper) throws Exception {
+        if (isSourceChainUpdateAccepted()) {
+            return new Chain<>(mapper.apply(sourceChain.item), sourceChain.configuration);
+        } else {
+            return new Chain<>(null, sourceChain.configuration);
+        }
     }
 }

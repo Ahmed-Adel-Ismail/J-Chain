@@ -5,8 +5,10 @@ import org.junit.Test;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -355,4 +357,73 @@ public class ConditionTest {
 
     }
 
+
+    @Test
+    public void theMapWithValidConditionThenReturnAnOptionalContainingMappedValue(){
+
+        TestClassTwo result = new Chain<>(new TestClass(),chainConfiguration)
+                .when(new Predicate<TestClass>() {
+                    @Override
+                    public boolean test(TestClass testClass) throws Exception {
+                        return true;
+                    }
+                })
+                .thenMap(new Function<TestClass,TestClassTwo>(){
+
+                    @Override
+                    public TestClassTwo apply(TestClass testClass) throws Exception {
+                        return new TestClassTwo("1");
+                    }
+                })
+                .defaultIfEmpty(new TestClassTwo("2"))
+                .call();
+
+        assertEquals("1",result.text);
+
+
+    }
+
+    @Test
+    public void theMapWithInvalidConditionThenReturnAnOptionalContainingNull(){
+
+        TestClassTwo result = new Chain<>(new TestClass(),chainConfiguration)
+                .when(new Predicate<TestClass>() {
+                    @Override
+                    public boolean test(TestClass testClass) throws Exception {
+                        return false;
+                    }
+                })
+                .thenMap(new Function<TestClass,TestClassTwo>(){
+
+                    @Override
+                    public TestClassTwo apply(TestClass testClass) throws Exception {
+                        return new TestClassTwo("1");
+                    }
+                })
+                .defaultIfEmpty(new TestClassTwo("2"))
+                .call();
+
+        assertEquals("2",result.text);
+
+
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void thenMapWithExceptionThenThrowException() {
+        new Chain<>(new TestClass(), chainConfiguration)
+                .when(new Predicate<TestClass>() {
+                    @Override
+                    public boolean test(TestClass testClass) throws Exception {
+                        return true;
+                    }
+                })
+                .thenMap(new Function<TestClass,TestClassTwo>(){
+
+                    @Override
+                    public TestClassTwo apply(TestClass testClass) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                });
+
+    }
 }
