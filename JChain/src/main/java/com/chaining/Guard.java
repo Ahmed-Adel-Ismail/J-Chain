@@ -17,41 +17,36 @@ import io.reactivex.functions.Function;
  * <p>
  * Created by Ahmed Adel Ismail on 11/1/2017.
  */
-public class Guard<T> {
+public class Guard<T, S extends ChainBlock<T, S>> extends ChainBlock<T, Guard<T, S>> {
 
-    private final T item;
     private final Exception error;
-    private final ChainConfigurationImpl configuration;
+    private final S chainBlock;
 
-    Guard(Callable<T> callable, ChainConfigurationImpl configuration) {
-
-        T callResult = null;
-        Exception callError = null;
-
-        try {
-            callResult = callable.call();
-        } catch (Exception e) {
-            callError = e;
-        }
-
-        this.item = callResult;
-        this.error = callError;
-        this.configuration = configuration;
-
+    Guard(Callable<T> callable, S chainBlock) throws Exception {
+        super(callable.call(), chainBlock.configuration);
+        this.error = null;
+        this.chainBlock = chainBlock;
     }
 
-    /**
-     * execute the passed {@link Callable} safely, which will handle any thrown {@link Exception}
-     * internally, you will need to call {@link Guard#onErrorReturnItem(Object)} or
-     * {@link Guard#onErrorReturn(Function)} to continue chaining the function calls,
-     * or you can call {@link #onError(Consumer)} to finish the chain
-     *
-     * @param callable a {@link Callable} that may crash
-     * @param <T>      the type of the returned item
-     * @return a {@link Guard} to handle fallback scenarios
-     */
-    public static <T> Guard<T> let(@NonNull Callable<T> callable) {
-        return new Guard<>(callable, ChainConfigurationImpl.getInstance(null));
+    Guard(Exception error, S chainBlock) {
+        super(null, chainBlock.configuration);
+        this.error = error;
+        this.chainBlock = chainBlock;
+    }
+
+    private Guard(T item, S chainBlock) {
+        super(item, chainBlock.configuration);
+        this.chainBlock = chainBlock;
+        this.error = null;
+    }
+
+    @Override
+    Guard<T, S> copy(T item, ChainConfigurationImpl configuration) {
+        if (error != null) {
+            return new Guard<>(error, chainBlock.copy(null, configuration));
+        } else {
+            return new Guard<>(item, chainBlock.copy(item, configuration));
+        }
     }
 
     /**
@@ -61,11 +56,11 @@ public class Guard<T> {
      * @param item the fallback item
      * @return a {@link Chain} to continue the flow
      */
-    public Chain<T> onErrorReturnItem(@NonNull T item) {
+    public S onErrorReturnItem(@NonNull T item) {
         if (error != null) {
-            return new Chain<>(item, configuration);
+            return chainBlock.copy(item);
         } else {
-            return new Chain<>(this.item, configuration);
+            return chainBlock.copy(this.item);
         }
     }
 
@@ -76,18 +71,18 @@ public class Guard<T> {
      * @param function the function that will provide the fallback item
      * @return a {@link Chain} to continue the flow
      */
-    public Chain<T> onErrorReturn(@NonNull Function<Throwable, T> function) {
+    public S onErrorReturn(@NonNull Function<Throwable, T> function) {
         if (error != null) {
             return chainFromFunction(function);
         } else {
-            return new Chain<>(item, configuration);
+            return chainBlock.copy(item);
         }
     }
 
     @NonNull
-    private Chain<T> chainFromFunction(Function<Throwable, T> function) {
+    private S chainFromFunction(Function<Throwable, T> function) {
         try {
-            return new Chain<>(function.apply(error), configuration);
+            return chainBlock.copy(function.apply(error));
         } catch (Exception e) {
             throw new RuntimeExceptionConverter().apply(e);
         }
@@ -110,4 +105,5 @@ public class Guard<T> {
             }
         }
     }
+
 }

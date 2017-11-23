@@ -2,8 +2,6 @@ package com.chaining;
 
 import org.junit.Test;
 
-import java.util.concurrent.Callable;
-
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
@@ -15,41 +13,46 @@ public class GuardTest {
 
 
     @Test
-    public void guardWithSetTextOnTestClassThenFindTextValueUpdated() {
+    public void guardWithSetTextOnTestClassThenFindTextValueUpdated() throws Exception {
 
         final TestClass[] result = {new TestClass()};
-        Guard.let(new Callable<TestClass>() {
-            @Override
-            public TestClass call() throws Exception {
-                result[0].text = "!";
-                return result[0];
-            }
-        });
+
+        Chain.let(new TestClass())
+                .guard(new Consumer<TestClass>() {
+                    @Override
+                    public void accept(TestClass testClass) throws Exception {
+                        result[0].text = "!";
+                    }
+                });
 
         assertEquals("!", result[0].text);
     }
 
     @Test
     public void guardWithExceptionThenDoNotThrowException() {
-        Guard.let(new Callable<TestClass>() {
-            @Override
-            public TestClass call() throws Exception {
-                throw new UnsupportedOperationException();
-            }
-        });
+
+        Chain.let(0)
+                .guard(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                });
     }
 
     @Test
     public void onErrorReturnForNonCrashingGuardThenDoNotChangeAnyThing() {
-        TestClass testClass = Guard.let(new Callable<TestClass>() {
-            @Override
-            public TestClass call() throws Exception {
-                return new TestClass("!");
-            }
-        })
+
+        TestClass testClass = Chain.let(new TestClass())
+                .guard(new Consumer<TestClass>() {
+                    @Override
+                    public void accept(TestClass testClass) throws Exception {
+                        testClass.text = "!";
+                    }
+                })
                 .onErrorReturn(new Function<Throwable, TestClass>() {
                     @Override
-                    public TestClass apply(@NonNull Throwable throwable) throws Exception {
+                    public TestClass apply(Throwable throwable) throws Exception {
                         return new TestClass("!!");
                     }
                 })
@@ -60,12 +63,13 @@ public class GuardTest {
 
     @Test
     public void onErrorReturnForCrashingGuardThenReturnTheValue() {
-        TestClass testClass = Guard.let(new Callable<TestClass>() {
-            @Override
-            public TestClass call() throws Exception {
-                throw new UnsupportedOperationException();
-            }
-        })
+        TestClass testClass = Chain.let(new TestClass())
+                .guard(new Consumer<TestClass>() {
+                    @Override
+                    public void accept(TestClass testClass) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                })
                 .onErrorReturn(new Function<Throwable, TestClass>() {
                     @Override
                     public TestClass apply(@NonNull Throwable throwable) throws Exception {
@@ -79,27 +83,30 @@ public class GuardTest {
 
     @Test(expected = UnsupportedOperationException.class)
     public void onErrorReturnWithCrashingFunctionThenThrowTheException() {
-        Guard.let(new Callable<TestClass>() {
+        Chain.let(0)
+                .guard(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                }).onErrorReturn(new Function<Throwable, Integer>() {
             @Override
-            public TestClass call() throws Exception {
+            public Integer apply(Throwable throwable) throws Exception {
                 throw new UnsupportedOperationException();
             }
-        }).onErrorReturn(new Function<Throwable, TestClass>() {
-            @Override
-            public TestClass apply(@NonNull Throwable throwable) throws Exception {
-                throw new UnsupportedOperationException();
-            }
-        }).call();
+        });
     }
 
     @Test
     public void onErrorReturnItemForNonCrashingGuardThenDoNotChangeAnyThing() {
-        TestClass testClass = Guard.let(new Callable<TestClass>() {
-            @Override
-            public TestClass call() throws Exception {
-                return new TestClass("!");
-            }
-        })
+        TestClass testClass = Chain.let(new TestClass())
+                .guard(new Consumer<TestClass>() {
+                           @Override
+                           public void accept(TestClass testClass) throws Exception {
+                               testClass.text = "!";
+                           }
+                       }
+                )
                 .onErrorReturnItem(new TestClass("!!"))
                 .call();
 
@@ -108,12 +115,13 @@ public class GuardTest {
 
     @Test
     public void onErrorReturnItemForCrashingGuardThenReturnTheValue() {
-        TestClass testClass = Guard.let(new Callable<TestClass>() {
-            @Override
-            public TestClass call() throws Exception {
-                throw new UnsupportedOperationException();
-            }
-        })
+        TestClass testClass = Chain.let(new TestClass())
+                .guard(new Consumer<TestClass>() {
+                    @Override
+                    public void accept(TestClass testClass) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                })
                 .onErrorReturnItem(new TestClass("!"))
                 .call();
 
@@ -124,18 +132,20 @@ public class GuardTest {
     public void onErrorAcceptForNonCrashingGuardThenChangeNothing() {
 
         final Exception[] result = {null};
-        Guard.let(new Callable<TestClass>() {
-            @Override
-            public TestClass call() throws Exception {
-                return new TestClass("!");
-            }
-        }).onError(new Consumer<Exception>() {
+        Chain.let(new TestClass())
+                .guard(new Consumer<TestClass>() {
+                    @Override
+                    public void accept(TestClass testClass) throws Exception {
+                        testClass.text = "!";
+                    }
+                })
+                .onError(new Consumer<Exception>() {
 
-            @Override
-            public void accept(@NonNull Exception e) throws Exception {
-                result[0] = e;
-            }
-        });
+                    @Override
+                    public void accept(@NonNull Exception e) throws Exception {
+                        result[0] = e;
+                    }
+                });
 
         assertNull(result[0]);
     }
@@ -144,18 +154,21 @@ public class GuardTest {
     public void onErrorAcceptForCrashingGuardThenInvokeTheFunction() {
 
         final Exception[] result = {null};
-        Guard.let(new Callable<TestClass>() {
-            @Override
-            public TestClass call() throws Exception {
-                throw new UnsupportedOperationException();
-            }
-        }).onError(new Consumer<Exception>() {
+        Chain.let(0)
+                .guard(new Consumer<Integer>() {
+                           @Override
+                           public void accept(Integer integer) throws Exception {
+                               throw new UnsupportedOperationException();
+                           }
+                       }
+                )
+                .onError(new Consumer<Exception>() {
+                    @Override
+                    public void accept(Exception e) throws Exception {
+                        result[0] = e;
+                    }
+                });
 
-            @Override
-            public void accept(@NonNull Exception e) throws Exception {
-                result[0] = e;
-            }
-        });
 
         assertEquals(UnsupportedOperationException.class, result[0].getClass());
     }
@@ -163,19 +176,20 @@ public class GuardTest {
     @Test(expected = UnsupportedOperationException.class)
     public void onErrorAcceptWithCrashingFunctionThenThrowException() {
 
-        Guard.let(new Callable<TestClass>() {
-            @Override
-            public TestClass call() throws Exception {
-                throw new NullPointerException();
-            }
-        }).onError(new Consumer<Exception>() {
-
-            @Override
-            public void accept(@NonNull Exception e) throws Exception {
-                throw new UnsupportedOperationException();
-            }
-        });
-
+        Chain.let(0)
+                .guard(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        throw new NullPointerException();
+                    }
+                })
+                .onError(new Consumer<Exception>() {
+                    @Override
+                    public void accept(Exception e) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                });
     }
+
 
 }

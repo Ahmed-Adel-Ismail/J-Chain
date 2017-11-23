@@ -1,11 +1,8 @@
 package com.chaining;
 
 
-import com.chaining.annotations.SideEffect;
 import com.chaining.exceptions.RuntimeExceptionConverter;
 import com.chaining.interfaces.And;
-import com.chaining.interfaces.DefaultIfEmpty;
-import com.chaining.interfaces.Monad;
 
 import org.javatuples.Pair;
 
@@ -16,13 +13,10 @@ import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.annotations.Nullable;
-import io.reactivex.functions.Action;
 import io.reactivex.functions.BiPredicate;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
-
-import static com.functional.curry.Curry.toCallable;
 
 
 /**
@@ -32,19 +26,18 @@ import static com.functional.curry.Curry.toCallable;
  * <p>
  * Created by Ahmed Adel Ismail on 10/29/2017.
  */
-public class Chain<T> implements
-        Function<Consumer<T>, Chain<T>>,
+public class Chain<T> extends ChainBlock<T, Chain<T>>
+        implements
         Callable<T>,
-        DefaultIfEmpty<T>,
-        And<T>,
-        Monad<T> {
-
-    final T item;
-    final ChainConfigurationImpl configuration;
+        And<T> {
 
     Chain(T item, ChainConfigurationImpl configuration) {
-        this.item = item;
-        this.configuration = configuration;
+        super(item, configuration);
+    }
+
+    @Override
+    Chain<T> copy(T item, ChainConfigurationImpl configuration) {
+        return new Chain<>(item, configuration);
     }
 
     /**
@@ -87,29 +80,7 @@ public class Chain<T> implements
         }
     }
 
-    /**
-     * invoke an action on the root item that may throw an {@link Exception}
-     *
-     * @param action the {@link Consumer} to be invoked
-     * @return a {@link Guard} to handle safe execution
-     */
-    public Guard<T> guard(Consumer<T> action) {
-        return new Guard<>(toCallable(invokeGuardFunction(), action), configuration);
-    }
 
-    private Function<Consumer<T>, T> invokeGuardFunction() {
-        return new Function<Consumer<T>, T>() {
-            @Override
-            public T apply(Consumer<T> action1) throws Exception {
-                return invokeGuard(action1);
-            }
-        };
-    }
-
-    private T invokeGuard(Consumer<T> action) throws Exception {
-        action.accept(item);
-        return item;
-    }
 
     /**
      * pass a {@link Predicate} that if it returned {@code true}, it's
@@ -193,29 +164,6 @@ public class Chain<T> implements
                 .blockingGet();
     }
 
-    @Override
-    public <R> R flatMap(@NonNull Function<T, R> flatMapper) {
-        try {
-            return flatMapper.apply(item);
-        } catch (Throwable e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
-    }
-
-    /**
-     * apply an action to the stored item
-     *
-     * @param action the action to be applied
-     * @return {@code this} instance for chaining
-     */
-    public Chain<T> apply(Consumer<T> action) {
-        try {
-            action.accept(item);
-        } catch (Exception e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
-        return this;
-    }
 
     private Consumer<Collection<T>> removeNulls() {
         return new Consumer<Collection<T>>() {
@@ -242,23 +190,6 @@ public class Chain<T> implements
                 return comparator.test(Chain.this.item, item);
             }
         };
-    }
-
-    /**
-     * apply an action before going to the next step in this chain, this operation is
-     * intended for side-effects
-     *
-     * @param action an {@link Action} to be executed
-     * @return {@code this} instance for chaining
-     */
-    @SideEffect("usually this operation is done for side-effects")
-    public Chain<T> apply(Action action) {
-        try {
-            action.run();
-        } catch (Exception e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
-        return this;
     }
 
     /**
@@ -309,11 +240,6 @@ public class Chain<T> implements
     @Override
     public T call() {
         return item;
-    }
-
-    @Override
-    public Chain<T> defaultIfEmpty(@NonNull T defaultValue) {
-        return new Optional<>(this).defaultIfEmpty(defaultValue);
     }
 
     /**
