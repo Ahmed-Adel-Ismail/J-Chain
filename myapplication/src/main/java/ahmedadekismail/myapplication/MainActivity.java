@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
                 .in(liveActivitiesNames)
                 .when(Pair::getValue1)
                 .then(pair -> Log.d(pair.getValue0(), "Activity is alive"));
+
     }
 
 

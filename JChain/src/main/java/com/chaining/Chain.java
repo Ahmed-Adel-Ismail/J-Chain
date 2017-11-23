@@ -61,6 +61,7 @@ public class Chain<T> extends ChainBlock<T, Chain<T>>
      * @return a new {@link Chain}
      */
     public static <T> Chain<T> let(@NonNull T item) {
+        NullChecker.crashIfNull(item);
         return new Chain<>(item, ChainConfigurationImpl.getInstance(null));
     }
 
@@ -73,6 +74,7 @@ public class Chain<T> extends ChainBlock<T, Chain<T>>
      * @return a new {@link Chain}
      */
     public static <T> Chain<T> call(@NonNull Callable<T> callable) {
+        NullChecker.crashIfNull(callable);
         try {
             return new Chain<>(callable.call(), ChainConfigurationImpl.getInstance(null));
         } catch (Exception e) {
@@ -91,7 +93,8 @@ public class Chain<T> extends ChainBlock<T, Chain<T>>
      * @return a {@link Condition} to supply it's {@link Condition#then(Consumer)}
      * {@link Consumer}
      */
-    public Condition<T> when(Predicate<T> predicate) {
+    public Condition<T> when(@NonNull Predicate<T> predicate) {
+        NullChecker.crashIfNull(predicate);
         return Condition.createNormal(this, predicate);
     }
 
@@ -106,7 +109,8 @@ public class Chain<T> extends ChainBlock<T, Chain<T>>
      * @return a {@link Condition} to supply it's {@link Condition#then(Consumer)}
      * {@link Consumer}
      */
-    public Condition<T> whenNot(Predicate<T> predicate) {
+    public Condition<T> whenNot(@NonNull Predicate<T> predicate) {
+        NullChecker.crashIfNull(predicate);
         return Condition.createNegated(this, predicate);
     }
 
@@ -120,7 +124,8 @@ public class Chain<T> extends ChainBlock<T, Chain<T>>
      * return the original Object, and {@link Pair#getValue1()} will return a boolean indicating
      * weather the the Object was found in the passed {@link Collection} or not
      */
-    public Chain<Pair<T, Boolean>> in(Collection<T> collection) {
+    public Chain<Pair<T, Boolean>> in(@NonNull Collection<T> collection) {
+        NullChecker.crashIfNull(collection);
         return in(collection, isEqual());
     }
 
@@ -137,9 +142,9 @@ public class Chain<T> extends ChainBlock<T, Chain<T>>
      * return the original Object, and {@link Pair#getValue1()} will return a boolean indicating
      * weather the the Object was found in the passed {@link Collection} or not
      */
-    public Chain<Pair<T, Boolean>> in(Collection<T> collection, BiPredicate<T, T> comparator) {
+    public Chain<Pair<T, Boolean>> in(@NonNull Collection<T> collection, BiPredicate<T, T> comparator) {
         boolean inCollection = false;
-        if (collection != null && !collection.isEmpty()) {
+        if (!collection.isEmpty()) {
             inCollection = isObjectInCollection(collection, comparator);
         }
         return new Chain<>(Pair.with(item, inCollection), configuration);
@@ -186,7 +191,11 @@ public class Chain<T> extends ChainBlock<T, Chain<T>>
         return new Predicate<T>() {
             @Override
             public boolean test(T item) throws Exception {
-                return comparator.test(Chain.this.item, item);
+                if (Chain.this.item != null) {
+                    return comparator.test(Chain.this.item, item);
+                } else {
+                    return false;
+                }
             }
         };
     }
@@ -199,6 +208,7 @@ public class Chain<T> extends ChainBlock<T, Chain<T>>
      * @return {@code this} instance for chaining
      */
     public <R> Chain<R> map(@NonNull Function<T, R> mapper) {
+        NullChecker.crashIfNull(mapper);
         try {
             return new Chain<>(mapper.apply(item), configuration);
         } catch (Throwable e) {
@@ -213,6 +223,7 @@ public class Chain<T> extends ChainBlock<T, Chain<T>>
      * @return a new {@link Chain}
      */
     public <R> Chain<R> to(@NonNull R item) {
+        NullChecker.crashIfNull(item);
         return new Chain<>(item, ChainConfigurationImpl.getInstance(null));
     }
 
@@ -224,6 +235,7 @@ public class Chain<T> extends ChainBlock<T, Chain<T>>
      * @return a new {@link Chain}
      */
     public <R> Chain<R> to(@NonNull Callable<R> itemCallable) {
+        NullChecker.crashIfNull(itemCallable);
         try {
             return new Chain<>(itemCallable.call(), ChainConfigurationImpl.getInstance(null));
         } catch (Exception e) {
@@ -242,10 +254,9 @@ public class Chain<T> extends ChainBlock<T, Chain<T>>
     }
 
 
-
-
     @Override
     public Collector<T> and(T item) {
+        NullChecker.crashIfNull(item);
         return new Collector<T>(configuration)
                 .and(this.item)
                 .and(item);
@@ -260,6 +271,7 @@ public class Chain<T> extends ChainBlock<T, Chain<T>>
      * first value, and the new Item as a second Value
      */
     public <R> Chain<Pair<T, R>> pair(R item) {
+        NullChecker.crashIfNull(item);
         return new Chain<>(Pair.with(this.item, item), configuration);
     }
 
@@ -272,6 +284,7 @@ public class Chain<T> extends ChainBlock<T, Chain<T>>
      * first value, and the function result as a second value
      */
     public <R> Chain<Pair<T, R>> pair(Function<T, R> pairedItemMapper) {
+        NullChecker.crashIfNull(pairedItemMapper);
         try {
             return new Chain<>(Pair.with(item, pairedItemMapper.apply(item)), configuration);
         } catch (Exception e) {

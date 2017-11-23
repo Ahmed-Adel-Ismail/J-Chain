@@ -29,9 +29,8 @@ public class Collector<T> implements And<T>, Monad<List<T>> {
 
     @Override
     public Collector<T> and(T item) {
-        if (item != null) {
-            items.add(item);
-        }
+        NullChecker.crashIfNull(item);
+        items.add(item);
         return this;
     }
 
@@ -52,6 +51,9 @@ public class Collector<T> implements And<T>, Monad<List<T>> {
      * @return a {@link Chain} holding the Object created from the passed {@link Function}
      */
     public <R> Chain<R> collect(Function<List<T>, R> collectorFunction) {
+
+        NullChecker.crashIfNull(collectorFunction);
+
         try {
             return new Chain<>(collectorFunction.apply(items), chainConfiguration);
         } catch (Exception e) {
@@ -61,6 +63,9 @@ public class Collector<T> implements And<T>, Monad<List<T>> {
 
     @Override
     public <R> R flatMap(@NonNull Function<List<T>, R> flatMapper) {
+
+        NullChecker.crashIfNull(flatMapper);
+
         try {
             return flatMapper.apply(items);
         } catch (Throwable e) {
@@ -75,6 +80,9 @@ public class Collector<T> implements And<T>, Monad<List<T>> {
      * @return the new {@link Collector} with mapped items
      */
     public <R> Collector<R> map(Function<T, R> mapper) {
+
+        NullChecker.crashIfNull(mapper);
+
         if (items.isEmpty()) {
             return new Collector<>(chainConfiguration);
         } else {
@@ -103,6 +111,8 @@ public class Collector<T> implements And<T>, Monad<List<T>> {
      * @return the result of the reducer function
      */
     public Chain<T> reduce(BiFunction<T, T, T> reducer) {
+
+        NullChecker.crashIfNull(reducer);
 
         if (items.isEmpty()) {
             return new Chain<>(null, chainConfiguration);

@@ -51,12 +51,19 @@ abstract class ChainBlock<T, S extends ChainBlock<T, S>>
     abstract S copy(T item, ChainConfigurationImpl configuration);
 
     /**
-     * apply an action to the stored item
+     * apply an action to the stored item, if the item is {@code null}, nothing will happen
      *
      * @param action the action to be applied
      * @return {@code this} instance for chaining
      */
     public S apply(Consumer<T> action) {
+
+        NullChecker.crashIfNull(action);
+
+        if (item == null) {
+            return (S) this;
+        }
+
         try {
             action.accept(item);
         } catch (Exception e) {
@@ -74,16 +81,24 @@ abstract class ChainBlock<T, S extends ChainBlock<T, S>>
      */
     @SideEffect("usually this operation is done for side-effects")
     public S apply(Action action) {
+
+        NullChecker.crashIfNull(action);
+
         try {
             action.run();
         } catch (Exception e) {
             throw new RuntimeExceptionConverter().apply(e);
         }
+
         return (S) this;
     }
 
     @Override
     public <R> R flatMap(@NonNull Function<T, R> flatMapper) {
+
+        NullChecker.crashIfNull(flatMapper);
+        NullChecker.crashIfNull(item);
+
         try {
             return flatMapper.apply(item);
         } catch (Throwable e) {
@@ -98,6 +113,9 @@ abstract class ChainBlock<T, S extends ChainBlock<T, S>>
      * @return a {@link Guard} to handle safe execution
      */
     public Guard<T, S> guard(Consumer<T> action) {
+
+        NullChecker.crashIfNull(action);
+
         try {
             return new Guard<>(toCallable(invokeGuardFunction(), action), (S) this);
         } catch (Exception e) {
@@ -121,6 +139,9 @@ abstract class ChainBlock<T, S extends ChainBlock<T, S>>
     }
 
     public Chain<T> defaultIfEmpty(@NonNull T defaultValue) {
+
+        NullChecker.crashIfNull(defaultValue);
+
         if (item == null) {
             return new Chain<>(defaultValue, configuration);
         }
@@ -134,6 +155,13 @@ abstract class ChainBlock<T, S extends ChainBlock<T, S>>
      * @param action a {@link Consumer} to be invoked in debugging only
      */
     public S debug(Consumer<T> action) {
+
+        NullChecker.crashIfNull(action);
+
+        if (item == null) {
+            return (S) this;
+        }
+
         if (configuration.isDebugging()) {
             try {
                 action.accept(item);

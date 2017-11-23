@@ -43,6 +43,9 @@ public class Condition<T> {
      * {@code true}, or will return it with no updates
      */
     public Chain<T> then(Consumer<T> action) {
+
+        NullChecker.crashIfNull(action);
+
         try {
             return invokeThenImplementation(action);
         } catch (Exception e) {
@@ -82,6 +85,9 @@ public class Condition<T> {
      */
     @SideEffect("usually this operation is done for side-effects")
     public Chain<T> then(Action action) {
+
+        NullChecker.crashIfNull(action);
+
         try {
             return invokeThenImplementation(action);
         } catch (Exception e) {
@@ -103,6 +109,9 @@ public class Condition<T> {
      * @return the {@link Optional} with the updated state based on the previous {@link Predicate}
      */
     public <R> Optional<R,Chain<R>> thenMap(Function<T, R> mapper) {
+
+        NullChecker.crashIfNull(mapper);
+
         try {
             return new Optional<>(mappedChain(mapper));
         } catch (Exception e) {

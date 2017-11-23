@@ -34,6 +34,9 @@ public class Optional<T, S extends ChainBlock<T, S>> extends ChainBlock<T, Optio
      */
     @Override
     public Optional<T, S> apply(Consumer<T> action) {
+
+        NullChecker.crashIfNull(action);
+
         if (chainBlock.item != null) {
             try {
                 action.accept(chainBlock.item);
@@ -53,6 +56,9 @@ public class Optional<T, S extends ChainBlock<T, S>> extends ChainBlock<T, Optio
      * @return {@code this} instance for chaining
      */
     public <R> Optional<R, Chain<R>> map(Function<T, R> mapper) {
+
+        NullChecker.crashIfNull(mapper);
+
         try {
             return new Optional<>(mappedChain(mapper));
         } catch (Exception e) {

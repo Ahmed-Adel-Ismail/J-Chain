@@ -29,7 +29,7 @@ public class OptionalTest {
     @Test
     public void applyWithNullChainThenDoNothing() {
 
-        TestClass testClass = new Optional<>(Chain.<TestClass>let(null))
+        TestClass testClass = Chain.optional((TestClass)null)
                 .apply(new Consumer<TestClass>() {
                     @Override
                     public void accept(TestClass testClass) {
@@ -67,7 +67,13 @@ public class OptionalTest {
     @Test
     public void defaultIfEmptyWithTestClassValueForNullChainThenReturnTestClass() {
 
-        TestClass testClass = new Optional<>(Chain.<TestClass>let(null))
+        TestClass testClass = new Optional<>(Chain.let(new TestClass()))
+                .map(new Function<TestClass, TestClass>() {
+                    @Override
+                    public TestClass apply(TestClass testClass) throws Exception {
+                        return null;
+                    }
+                })
                 .defaultIfEmpty(new TestClass("2"))
                 .call();
 
@@ -94,7 +100,7 @@ public class OptionalTest {
     @Test
     public void mapWithNullChainThenDoNothing() {
 
-        TestClassTwo testClassTwo = new Optional<>(Chain.<TestClass>let(null))
+        TestClassTwo testClassTwo = Chain.optional((TestClass)null)
                 .map(new Function<TestClass, TestClassTwo>() {
                     @Override
                     public TestClassTwo apply(TestClass testClass) {

@@ -57,6 +57,9 @@ public class Guard<T, S extends ChainBlock<T, S>> extends ChainBlock<T, Guard<T,
      * @return a {@link Chain} to continue the flow
      */
     public S onErrorReturnItem(@NonNull T item) {
+
+        NullChecker.crashIfNull(item);
+
         if (error != null) {
             return chainBlock.copy(item);
         } else {
@@ -72,6 +75,9 @@ public class Guard<T, S extends ChainBlock<T, S>> extends ChainBlock<T, Guard<T,
      * @return a {@link Chain} to continue the flow
      */
     public S onErrorReturn(@NonNull Function<Throwable, T> function) {
+
+        NullChecker.crashIfNull(function);
+
         if (error != null) {
             return chainFromFunction(function);
         } else {
@@ -97,6 +103,9 @@ public class Guard<T, S extends ChainBlock<T, S>> extends ChainBlock<T, Guard<T,
      * @param consumer a {@link Consumer} to handle the {@link Exception}
      */
     public void onError(Consumer<Exception> consumer) {
+
+        NullChecker.crashIfNull(consumer);
+
         if (error != null) {
             try {
                 consumer.accept(error);
