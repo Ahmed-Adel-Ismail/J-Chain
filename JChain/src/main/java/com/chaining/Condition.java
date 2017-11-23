@@ -87,7 +87,6 @@ public class Condition<T> {
         } catch (Exception e) {
             throw new RuntimeExceptionConverter().apply(e);
         }
-
     }
 
     private Chain<T> invokeThenImplementation(Action action) throws Exception {
@@ -103,7 +102,7 @@ public class Condition<T> {
      * @param mapper the action to convert the current item into a new item
      * @return the {@link Optional} with the updated state based on the previous {@link Predicate}
      */
-    public <R> Optional<R> thenMap(Function<T, R> mapper) {
+    public <R> Optional<R,Chain<R>> thenMap(Function<T, R> mapper) {
         try {
             return new Optional<>(mappedChain(mapper));
         } catch (Exception e) {

@@ -12,7 +12,7 @@ public class OptionalTest {
     @Test
     public void applyWithTestClassValueForNonNullChainThenInvokeApply() {
 
-        TestClass testClass = new Optional<TestClass>(Chain.let(new TestClass()))
+        TestClass testClass = Chain.optional(new TestClass())
                 .apply(new Consumer<TestClass>() {
                     @Override
                     public void accept(TestClass testClass) {

@@ -51,29 +51,6 @@ abstract class ChainBlock<T, S extends ChainBlock<T, S>>
     abstract S copy(T item, ChainConfigurationImpl configuration);
 
     /**
-     *
-     * @param item
-     * @param <R>
-     * @param <N>
-     * @return
-     */
-    <R, N extends ChainBlock<R, N>> N convert(R item){
-        return convert(item,configuration);
-    }
-
-
-    /**
-     * convert the subclass into a copy of another type as it's item
-     *
-     * @param item          the item for the new copy
-     * @param configuration the {@link ChainConfigurationImpl} for the new copy
-     * @param <R>           the expected item item
-     * @param <N>           the new sub-class generic type
-     * @return a new immutable copy with different type
-     */
-    abstract <R, N extends ChainBlock<R, N>> N convert(R item, ChainConfigurationImpl configuration);
-
-    /**
      * apply an action to the stored item
      *
      * @param action the action to be applied
@@ -143,9 +120,26 @@ abstract class ChainBlock<T, S extends ChainBlock<T, S>>
         return item;
     }
 
-    public S defaultIfEmpty(@NonNull T defaultValue) {
+    public Chain<T> defaultIfEmpty(@NonNull T defaultValue) {
         if (item == null) {
-            return copy(defaultValue, configuration);
+            return new Chain<>(defaultValue, configuration);
+        }
+        return new Chain<>(this.item, configuration);
+    }
+
+    /**
+     * invoke the passed {@link Consumer} if the Application is in the debug mode, you can set the
+     * debugging mode in {@link ChainConfiguration} in the Application's {@code onCreate()}
+     *
+     * @param action a {@link Consumer} to be invoked in debugging only
+     */
+    public S debug(Consumer<T> action) {
+        if (configuration.isDebugging()) {
+            try {
+                action.accept(item);
+            } catch (Exception e) {
+                throw new RuntimeExceptionConverter().apply(e);
+            }
         }
         return (S) this;
     }

@@ -26,7 +26,6 @@ public class Optional<T, S extends ChainBlock<T, S>> extends ChainBlock<T, Optio
         return new Optional<>(chainBlock.copy(item, configuration));
     }
 
-
     /**
      * apply an action to the stored item if not null
      *
@@ -53,7 +52,7 @@ public class Optional<T, S extends ChainBlock<T, S>> extends ChainBlock<T, Optio
      * @param <R>    the expected type to be mapped for
      * @return {@code this} instance for chaining
      */
-    public <R, N extends ChainBlock<R, N>, P extends Optional<R, N>> P map(Function<T, R> mapper) {
+    public <R> Optional<R, Chain<R>> map(Function<T, R> mapper) {
         try {
             return new Optional<>(mappedChain(mapper));
         } catch (Exception e) {
@@ -68,6 +67,9 @@ public class Optional<T, S extends ChainBlock<T, S>> extends ChainBlock<T, Optio
             return new Chain<>(null, chainBlock.configuration);
         }
     }
+
+
+
 
 
 }

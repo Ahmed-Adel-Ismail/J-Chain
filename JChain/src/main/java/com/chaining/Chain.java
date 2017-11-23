@@ -49,7 +49,7 @@ public class Chain<T> extends ChainBlock<T, Chain<T>>
      * @return an {@link Optional} to handle the value
      */
     @SuppressWarnings("ConstantConditions")
-    public static <T> Optional<T> optional(@Nullable T item) {
+    public static <T> Optional<T, Chain<T>> optional(@Nullable T item) {
         return new Optional<>(new Chain<>(item, ChainConfigurationImpl.getInstance(null)));
     }
 
@@ -79,7 +79,6 @@ public class Chain<T> extends ChainBlock<T, Chain<T>>
             throw new RuntimeExceptionConverter().apply(e);
         }
     }
-
 
 
     /**
@@ -242,22 +241,7 @@ public class Chain<T> extends ChainBlock<T, Chain<T>>
         return item;
     }
 
-    /**
-     * invoke the passed {@link Consumer} if the Application is in the debug mode, you can set the
-     * debugging mode in {@link ChainConfiguration} in the Application's {@code onCreate()}
-     *
-     * @param action a {@link Consumer} to be invoked in debugging only
-     */
-    public Chain<T> debug(Consumer<T> action) {
-        if (configuration.isDebugging()) {
-            try {
-                action.accept(item);
-            } catch (Exception e) {
-                throw new RuntimeExceptionConverter().apply(e);
-            }
-        }
-        return this;
-    }
+
 
 
     @Override
