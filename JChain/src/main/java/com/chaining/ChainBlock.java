@@ -16,7 +16,7 @@ import static com.functional.curry.Curry.toCallable;
  * <p>
  * Created by Ahmed Adel Ismail on 11/23/2017.
  */
-//@SuppressWarnings("unchecked")
+@SuppressWarnings("unchecked")
 abstract class ChainBlock<T, S extends ChainBlock<T, S>>
         implements
         Function<Consumer<T>, S>,
