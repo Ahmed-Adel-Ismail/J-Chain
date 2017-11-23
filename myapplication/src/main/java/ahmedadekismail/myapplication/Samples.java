@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import io.reactivex.Observable;
+import io.reactivex.functions.Consumer;
 
 /**
  * Created by Ahmed Adel Ismail on 11/12/2017.
@@ -16,18 +17,18 @@ import io.reactivex.Observable;
 
 public class Samples {
 
-    public static void main(String...args) {
+    public static void main(String... args) {
 
         // manipulate data in a declarative way
         Integer value = 10;
 
         Integer finalValue = Chain.let(value)
                 // apply an action : print value
-                .apply(System.out::println)
+                .apply((Consumer<Integer>) System.out::println)
                 // map the item : convert to an int that holds the value multiplied by 10
                 .map(i -> i * 10)
                 // apply action : print the new value
-                .apply(System.out::println)
+                .apply((Consumer<Integer>) System.out::println)
                 // retrieve the item to be stored in the Integer variable
                 .call();
 
@@ -38,13 +39,13 @@ public class Samples {
         // pass a value that maybe null :
         String finalNullableValue = Chain.optional(nullableValue)
                 // print if not null :
-                .apply(System.out::println)
+                .apply((Consumer<Integer>) System.out::println)
                 // if null, set the item to 10 :
                 .defaultIfEmpty(10)
                 // multiply the value by 10 :
                 .map(i -> i * 10)
                 // print the final value :
-                .apply(System.out::println)
+                .apply((Consumer<Integer>) System.out::println)
                 // convert the integer to String
                 .map(String::valueOf)
                 // retrieve the value to be assigned to the variable :
@@ -79,7 +80,7 @@ public class Samples {
         Chain.let(numbersWithNulls)
                 .apply(list -> list.remove(null))
                 .flatMap(Observable::fromIterable)
-                .forEach(System.out::println);
+                .forEach((Consumer<Integer>) System.out::println);
 
 
         // join multiple RxJava2 streams
@@ -119,7 +120,6 @@ public class Samples {
                 .when(list -> list.contains(3))
                 .then(list -> System.out.println("list contains value 3"))
                 .apply(List::clear);
-
 
 
     }
