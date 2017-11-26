@@ -18,7 +18,7 @@ public class GuardTest {
     public void guardWithSetTextOnTestClassThenFindTextValueUpdated() {
 
         final TestClass[] result = {new TestClass()};
-        Guard.let(new Callable<TestClass>() {
+        Chain.guard(new Callable<TestClass>() {
             @Override
             public TestClass call() throws Exception {
                 result[0].text = "!";
@@ -31,7 +31,7 @@ public class GuardTest {
 
     @Test
     public void guardWithExceptionThenDoNotThrowException() {
-        Guard.let(new Callable<TestClass>() {
+        Chain.guard(new Callable<TestClass>() {
             @Override
             public TestClass call() throws Exception {
                 throw new UnsupportedOperationException();
@@ -41,12 +41,13 @@ public class GuardTest {
 
     @Test
     public void onErrorReturnForNonCrashingGuardThenDoNotChangeAnyThing() {
-        TestClass testClass = Guard.let(new Callable<TestClass>() {
-            @Override
-            public TestClass call() throws Exception {
-                return new TestClass("!");
-            }
-        })
+        TestClass testClass = Chain
+                .guard(new Callable<TestClass>() {
+                    @Override
+                    public TestClass call() throws Exception {
+                        return new TestClass("!");
+                    }
+                })
                 .onErrorReturn(new Function<Throwable, TestClass>() {
                     @Override
                     public TestClass apply(@NonNull Throwable throwable) throws Exception {
@@ -60,7 +61,7 @@ public class GuardTest {
 
     @Test
     public void onErrorReturnForCrashingGuardThenReturnTheValue() {
-        TestClass testClass = Guard.let(new Callable<TestClass>() {
+        TestClass testClass = Chain.guard(new Callable<TestClass>() {
             @Override
             public TestClass call() throws Exception {
                 throw new UnsupportedOperationException();
@@ -79,7 +80,7 @@ public class GuardTest {
 
     @Test(expected = UnsupportedOperationException.class)
     public void onErrorReturnWithCrashingFunctionThenThrowTheException() {
-        Guard.let(new Callable<TestClass>() {
+        Chain.guard(new Callable<TestClass>() {
             @Override
             public TestClass call() throws Exception {
                 throw new UnsupportedOperationException();
@@ -94,7 +95,7 @@ public class GuardTest {
 
     @Test
     public void onErrorReturnItemForNonCrashingGuardThenDoNotChangeAnyThing() {
-        TestClass testClass = Guard.let(new Callable<TestClass>() {
+        TestClass testClass = Chain.guard(new Callable<TestClass>() {
             @Override
             public TestClass call() throws Exception {
                 return new TestClass("!");
@@ -108,7 +109,7 @@ public class GuardTest {
 
     @Test
     public void onErrorReturnItemForCrashingGuardThenReturnTheValue() {
-        TestClass testClass = Guard.let(new Callable<TestClass>() {
+        TestClass testClass = Chain.guard(new Callable<TestClass>() {
             @Override
             public TestClass call() throws Exception {
                 throw new UnsupportedOperationException();
@@ -124,7 +125,7 @@ public class GuardTest {
     public void onErrorAcceptForNonCrashingGuardThenChangeNothing() {
 
         final Exception[] result = {null};
-        Guard.let(new Callable<TestClass>() {
+        Chain.guard(new Callable<TestClass>() {
             @Override
             public TestClass call() throws Exception {
                 return new TestClass("!");
@@ -144,7 +145,7 @@ public class GuardTest {
     public void onErrorAcceptForCrashingGuardThenInvokeTheFunction() {
 
         final Exception[] result = {null};
-        Guard.let(new Callable<TestClass>() {
+        Chain.guard(new Callable<TestClass>() {
             @Override
             public TestClass call() throws Exception {
                 throw new UnsupportedOperationException();
@@ -163,7 +164,7 @@ public class GuardTest {
     @Test(expected = UnsupportedOperationException.class)
     public void onErrorAcceptWithCrashingFunctionThenThrowException() {
 
-        Guard.let(new Callable<TestClass>() {
+        Chain.guard(new Callable<TestClass>() {
             @Override
             public TestClass call() throws Exception {
                 throw new NullPointerException();

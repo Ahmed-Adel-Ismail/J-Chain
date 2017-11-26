@@ -4,7 +4,11 @@ import org.javatuples.Pair;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import io.reactivex.annotations.NonNull;
@@ -55,6 +59,36 @@ public class ChainTest {
                 .call();
 
         assertEquals("!", testClass.text);
+    }
+
+    @Test
+    public void guardWithCallableThenReturnTheValueOfCall() {
+        TestClass testClass = Chain
+                .guard(new Callable<TestClass>() {
+                    @Override
+                    public TestClass call() throws Exception {
+                        return new TestClass("!");
+                    }
+                })
+                .onErrorReturnItem(new TestClass("!!"))
+                .call();
+
+        assertEquals("!", testClass.text);
+    }
+
+    @Test
+    public void guardWithCrashingCallableThenReturnTheValueOfOnErrorReturnItem() {
+        TestClass testClass = Chain
+                .guard(new Callable<TestClass>() {
+                    @Override
+                    public TestClass call() throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                })
+                .onErrorReturnItem(new TestClass("!!"))
+                .call();
+
+        assertEquals("!!", testClass.text);
     }
 
     @Test
@@ -126,10 +160,10 @@ public class ChainTest {
     }
 
     @Test
-    public void applyActionWithSetTextOnTestClassThenFindTextValueUpdated() {
+    public void invokeWithSetTextOnTestClassThenFindTextValueUpdated() {
         final boolean[] result = {false};
         Chain.let(new TestClass())
-                .apply(new Action() {
+                .invoke(new Action() {
                     @Override
                     public void run() throws Exception {
                         result[0] = true;
@@ -141,9 +175,9 @@ public class ChainTest {
 
 
     @Test(expected = UnsupportedOperationException.class)
-    public void applyActionWithExceptionThenThrowException() {
+    public void invokeWithExceptionThenThrowException() {
         Chain.let(new TestClass())
-                .apply(new Action() {
+                .invoke(new Action() {
                     @Override
                     public void run() throws Exception {
                         throw new UnsupportedOperationException();
@@ -441,6 +475,43 @@ public class ChainTest {
                         throw new UnsupportedOperationException();
                     }
                 });
+    }
+
+
+    @Test
+    public void iterateWithOneItemThenReturnACollectorWithThisItemInList() {
+        List<Integer> result = Chain.let(10)
+                .iterate(Integer.class)
+                .collect()
+                .call();
+
+        assertEquals(10, (int) result.get(0));
+
+    }
+
+
+    @Test
+    public void iterateWithIterableThenReturnACollectorWithThisListItems() {
+
+        List<Integer> result = Chain.let(Arrays.asList(1, 2, 3, 4, 5))
+                .iterate(Integer.class)
+                .map(new Function<Integer, Integer>() {
+                    @Override
+                    public Integer apply(Integer integer) throws Exception {
+                        return integer * 10;
+                    }
+                })
+                .collect()
+                .call();
+
+        assertTrue(result.size() == 5 && result.get(0) == 10 && result.get(4) == 50);
+
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void iterateWithWrongTypeThenThrowException() {
+        Map map = new HashMap();
+        Chain.let(map).iterate(Integer.class);
     }
 
 

@@ -81,7 +81,7 @@ public class Condition<T> {
      * {@code true}, or will return it with no updates
      */
     @SideEffect("usually this operation is done for side-effects")
-    public Chain<T> then(Action action) {
+    public Chain<T> invoke(Action action) {
         try {
             return invokeThenImplementation(action);
         } catch (Exception e) {

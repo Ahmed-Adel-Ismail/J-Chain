@@ -41,20 +41,6 @@ public class Guard<T> {
     }
 
     /**
-     * execute the passed {@link Callable} safely, which will handle any thrown {@link Exception}
-     * internally, you will need to call {@link Guard#onErrorReturnItem(Object)} or
-     * {@link Guard#onErrorReturn(Function)} to continue chaining the function calls,
-     * or you can call {@link #onError(Consumer)} to finish the chain
-     *
-     * @param callable a {@link Callable} that may crash
-     * @param <T>      the type of the returned item
-     * @return a {@link Guard} to handle fallback scenarios
-     */
-    public static <T> Guard<T> let(@NonNull Callable<T> callable) {
-        return new Guard<>(callable, ChainConfigurationImpl.getInstance(null));
-    }
-
-    /**
      * provide a fallback item if the {@link Callable} that was passed to this {@link Guard}
      * crashed
      *

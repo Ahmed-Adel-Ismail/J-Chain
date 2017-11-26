@@ -10,6 +10,7 @@ import com.chaining.interfaces.Monad;
 import org.javatuples.Pair;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import io.reactivex.Maybe;
@@ -82,6 +83,24 @@ public class Chain<T> implements
     public static <T> Chain<T> call(@NonNull Callable<T> callable) {
         try {
             return new Chain<>(callable.call(), ChainConfigurationImpl.getInstance(null));
+        } catch (Exception e) {
+            throw new RuntimeExceptionConverter().apply(e);
+        }
+    }
+
+    /**
+     * start a chain of Functions throw passing a {@link Callable} that may return an item
+     * or may crash
+     *
+     * @param callable the {@link Callable} that will return the root item for this {@link Chain},
+     *                 should not be {@code null} ... it is safe to pass a {@link Callable} that
+     *                 may crash on invoking {@link Callable#call()}
+     * @param <T>      the type of this root Object
+     * @return a new {@link Guard} that handles the error cases
+     */
+    public static <T> Guard<T> guard(@NonNull Callable<T> callable) {
+        try {
+            return new Guard<>(callable, ChainConfigurationImpl.getInstance(null));
         } catch (Exception e) {
             throw new RuntimeExceptionConverter().apply(e);
         }
@@ -245,14 +264,14 @@ public class Chain<T> implements
     }
 
     /**
-     * apply an action before going to the next step in this chain, this operation is
+     * invoke an action before going to the next step in this chain, this operation is
      * intended for side-effects
      *
      * @param action an {@link Action} to be executed
      * @return {@code this} instance for chaining
      */
     @SideEffect("usually this operation is done for side-effects")
-    public Chain<T> apply(Action action) {
+    public Chain<T> invoke(Action action) {
         try {
             action.run();
         } catch (Exception e) {
@@ -369,5 +388,38 @@ public class Chain<T> implements
         }
     }
 
+    /**
+     * iterate over the stored {@link Iterable} item, if the stored item is not of type
+     * {@link Iterable}, this method will create a {@link Collector} with a {@link List} of
+     * one item, which is the stored item, you can then invoke {@link Collector#and(Object)}
+     * to append other items to the current items
+     *
+     * @param type the type of the elements in the stored {@link Iterable} item
+     * @param <R>  the expected type of elements to iterate over
+     * @return a {@link Collector} for managing those items
+     */
+    @SuppressWarnings("unchecked")
+    public <R> Collector<R> iterate(Class<R> type) {
+        if (item == null) {
+            return new Collector<>(configuration);
+        } else if (item instanceof Iterable) {
+            return iterableCollector();
+        } else if (!type.isAssignableFrom(item.getClass())) {
+            throw new UnsupportedOperationException("iterate() parameter type mismatch");
+        } else {
+            return new Collector<R>(configuration).and((R) item);
+        }
+    }
 
+    @SuppressWarnings("unchecked")
+    private <R> Collector<R> iterableCollector() {
+
+        List<R> items = Observable.fromIterable((Iterable<R>) item)
+                .toList()
+                .blockingGet();
+
+        Collector<R> collector = new Collector<>(configuration);
+        collector.items.addAll(items);
+        return collector;
+    }
 }

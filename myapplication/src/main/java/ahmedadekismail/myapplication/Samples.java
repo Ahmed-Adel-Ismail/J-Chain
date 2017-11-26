@@ -24,7 +24,7 @@ public class Samples {
 
         Integer finalValue = Chain.let(value)
                 // apply an action : print value
-                .apply((Consumer<Integer>) System.out::println)
+                .apply(System.out::println)
                 // map the item : convert to an int that holds the value multiplied by 10
                 .map(i -> i * 10)
                 // apply action : print the new value

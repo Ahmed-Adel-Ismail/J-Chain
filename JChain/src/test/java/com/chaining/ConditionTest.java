@@ -47,7 +47,7 @@ public class ConditionTest {
     }
 
     @Test
-    public void whenWithTruePredicateThenInvokeThenWithAction() {
+    public void whenWithTruePredicateThenInvokeAction() {
         final boolean[] result = {false};
         new Chain<>(new TestClass(), chainConfiguration)
                 .apply(new Consumer<TestClass>() {
@@ -63,7 +63,7 @@ public class ConditionTest {
                         return testClass.text.equals("!");
                     }
                 })
-                .then(new Action() {
+                .invoke(new Action() {
 
                     @Override
                     public void run() throws Exception {
@@ -105,7 +105,7 @@ public class ConditionTest {
     }
 
     @Test
-    public void whenWithFalsePredicateThenDoNotInvokeThenWithAction() {
+    public void whenWithFalsePredicateThenDoNotInvokeAction() {
         final boolean[] result = {false};
         TestClass testClass = new Chain<>(new TestClass(), chainConfiguration)
                 .apply(new Consumer<TestClass>() {
@@ -121,7 +121,7 @@ public class ConditionTest {
                         return false;
                     }
                 })
-                .then(new Action() {
+                .invoke(new Action() {
 
                     @Override
                     public void run() throws Exception {
@@ -217,7 +217,7 @@ public class ConditionTest {
     }
 
     @Test
-    public void whenNotWithTruePredicateThenDoNotInvokeThenWithAction() {
+    public void whenNotWithTruePredicateThenDoNotInvokeAction() {
         final boolean[] result = {false};
         new Chain<>(new TestClass(), chainConfiguration)
                 .apply(new Consumer<TestClass>() {
@@ -233,7 +233,7 @@ public class ConditionTest {
                         return testClass.text.equals("!");
                     }
                 })
-                .then(new Action() {
+                .invoke(new Action() {
 
                     @Override
                     public void run() throws Exception {
@@ -275,7 +275,7 @@ public class ConditionTest {
     }
 
     @Test
-    public void whenNotWithFalsePredicateThenInvokeThenWithAction() {
+    public void whenNotWithFalsePredicateThenInvokeAction() {
         final boolean[] result = {false};
         TestClass testClass = new Chain<>(new TestClass(), chainConfiguration)
                 .apply(new Consumer<TestClass>() {
@@ -291,7 +291,7 @@ public class ConditionTest {
                         return false;
                     }
                 })
-                .then(new Action() {
+                .invoke(new Action() {
 
                     @Override
                     public void run() throws Exception {
@@ -330,7 +330,7 @@ public class ConditionTest {
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void thenActionWithExceptionThenThrowException() {
+    public void invokeActionWithExceptionThenThrowException() {
         new Chain<>(new TestClass(), chainConfiguration)
                 .apply(new Consumer<TestClass>() {
                     @Override
@@ -346,7 +346,7 @@ public class ConditionTest {
 
                     }
                 })
-                .then(new Action() {
+                .invoke(new Action() {
 
                     @Override
                     public void run() throws Exception {
