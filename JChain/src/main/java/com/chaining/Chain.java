@@ -89,24 +89,6 @@ public class Chain<T> implements
     }
 
     /**
-     * start a chain of Functions throw passing a {@link Callable} that may return an item
-     * or may crash
-     *
-     * @param callable the {@link Callable} that will return the root item for this {@link Chain},
-     *                 should not be {@code null} ... it is safe to pass a {@link Callable} that
-     *                 may crash on invoking {@link Callable#call()}
-     * @param <T>      the type of this root Object
-     * @return a new {@link Guard} that handles the error cases
-     */
-    public static <T> Guard<T> guard(@NonNull Callable<T> callable) {
-        try {
-            return new Guard<>(callable, ChainConfigurationImpl.getInstance(null));
-        } catch (Exception e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
-    }
-
-    /**
      * invoke an action on the root item that may throw an {@link Exception}
      *
      * @param action the {@link Consumer} to be invoked

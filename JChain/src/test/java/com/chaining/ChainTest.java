@@ -63,8 +63,8 @@ public class ChainTest {
 
     @Test
     public void guardWithCallableThenReturnTheValueOfCall() {
-        TestClass testClass = Chain
-                .guard(new Callable<TestClass>() {
+        TestClass testClass = Guard
+                .call(new Callable<TestClass>() {
                     @Override
                     public TestClass call() throws Exception {
                         return new TestClass("!");
@@ -78,8 +78,8 @@ public class ChainTest {
 
     @Test
     public void guardWithCrashingCallableThenReturnTheValueOfOnErrorReturnItem() {
-        TestClass testClass = Chain
-                .guard(new Callable<TestClass>() {
+        TestClass testClass = Guard
+                .call(new Callable<TestClass>() {
                     @Override
                     public TestClass call() throws Exception {
                         throw new UnsupportedOperationException();
