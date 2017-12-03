@@ -1,3 +1,5 @@
+[![](https://jitpack.io/v/Ahmed-Adel-Ismail/J-Chain.svg)](https://jitpack.io/#Ahmed-Adel-Ismail/J-Chain)
+
 # J-Chain
 A library that provides a set of functional patterns to enable chaining operations one after another, also helps not cutting RxJava2 streams 
 
