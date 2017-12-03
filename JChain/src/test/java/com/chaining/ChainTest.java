@@ -62,7 +62,7 @@ public class ChainTest {
     }
 
     @Test
-    public void guardWithCallableThenReturnTheValueOfCall() {
+    public void callWithValidCallableThenReturnTheValueOfCall() {
         TestClass testClass = Guard
                 .call(new Callable<TestClass>() {
                     @Override
@@ -77,7 +77,7 @@ public class ChainTest {
     }
 
     @Test
-    public void guardWithCrashingCallableThenReturnTheValueOfOnErrorReturnItem() {
+    public void callWithCrashingCallableThenReturnTheValueOfOnErrorReturnItem() {
         TestClass testClass = Guard
                 .call(new Callable<TestClass>() {
                     @Override
@@ -86,6 +86,34 @@ public class ChainTest {
                     }
                 })
                 .onErrorReturnItem(new TestClass("!!"))
+                .call();
+
+        assertEquals("!!", testClass.text);
+    }
+
+    @Test
+    public void guardMapWithNonCrashingOperationThenReturnMappedItem() {
+        TestClassTwo testClass = Chain.let(new TestClass())
+                .guardMap(new Function<TestClass,TestClassTwo>() {
+                    @Override
+                    public TestClassTwo apply(@NonNull TestClass testClass) throws Exception {
+                        return new TestClassTwo("!");
+                    }
+                }).onErrorReturnItem(new TestClassTwo("!!"))
+                .call();
+
+        assertEquals("!", testClass.text);
+    }
+
+    @Test
+    public void guardMapWithCrashingOperationThenReturnTheValueOfOnErrorReturnItem() {
+        TestClassTwo testClass = Chain.let(new TestClass())
+                .guardMap(new Function<TestClass,TestClassTwo>() {
+                    @Override
+                    public TestClassTwo apply(@NonNull TestClass testClass) throws Exception {
+                       throw new UnsupportedOperationException();
+                    }
+                }).onErrorReturnItem(new TestClassTwo("!!"))
                 .call();
 
         assertEquals("!!", testClass.text);

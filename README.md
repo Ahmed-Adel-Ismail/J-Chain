@@ -166,7 +166,7 @@ To set the Debugging behavior, you will need to invoke <b>ChainConfiguration.set
     Step 2. Add the dependency
     
 	dependencies {
-		compile 'com.github.Ahmed-Adel-Ismail:J-Chain:0.0.8'
+		compile 'com.github.Ahmed-Adel-Ismail:J-Chain:0.0.9'
 	}
 
                 

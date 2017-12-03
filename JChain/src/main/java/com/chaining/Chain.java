@@ -89,6 +89,17 @@ public class Chain<T> implements
     }
 
     /**
+     * invoke a mapper function that may crash
+     *
+     * @param guardMapper the mapper function that may crash
+     * @param <R>         the expected return type
+     * @return a {@link Guard} with the new returned item
+     */
+    public <R> Guard<R> guardMap(Function<T, R> guardMapper) {
+        return new Guard<>(toCallable(guardMapper, item), configuration);
+    }
+
+    /**
      * invoke an action on the root item that may throw an {@link Exception}
      *
      * @param action the {@link Consumer} to be invoked
@@ -101,8 +112,8 @@ public class Chain<T> implements
     private Function<Consumer<T>, T> invokeGuardFunction() {
         return new Function<Consumer<T>, T>() {
             @Override
-            public T apply(Consumer<T> action1) throws Exception {
-                return invokeGuard(action1);
+            public T apply(Consumer<T> action) throws Exception {
+                return invokeGuard(action);
             }
         };
     }
