@@ -479,10 +479,10 @@ public class ChainTest {
 
 
     @Test
-    public void iterateWithOneItemThenReturnACollectorWithThisItemInList() {
+    public void collectWithOneItemThenReturnACollectorWithThisItemInList() {
         List<Integer> result = Chain.let(10)
-                .iterate(Integer.class)
-                .collect()
+                .collect(Integer.class)
+                .toList()
                 .call();
 
         assertEquals(10, (int) result.get(0));
@@ -491,17 +491,17 @@ public class ChainTest {
 
 
     @Test
-    public void iterateWithIterableThenReturnACollectorWithThisListItems() {
+    public void collectWithIterableThenReturnACollectorWithThisListItems() {
 
         List<Integer> result = Chain.let(Arrays.asList(1, 2, 3, 4, 5))
-                .iterate(Integer.class)
+                .collect(Integer.class)
                 .map(new Function<Integer, Integer>() {
                     @Override
                     public Integer apply(Integer integer) throws Exception {
                         return integer * 10;
                     }
                 })
-                .collect()
+                .toList()
                 .call();
 
         assertTrue(result.size() == 5 && result.get(0) == 10 && result.get(4) == 50);
@@ -509,9 +509,9 @@ public class ChainTest {
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void iterateWithWrongTypeThenThrowException() {
+    public void collectWithWrongTypeThenThrowException() {
         Map map = new HashMap();
-        Chain.let(map).iterate(Integer.class);
+        Chain.let(map).collect(Integer.class);
     }
 
 

@@ -371,23 +371,24 @@ public class Chain<T> implements
     }
 
     /**
-     * iterate over the stored {@link Iterable} item, if the stored item is not of type
+     * collect the stored {@link Iterable} item into a {@link Collector} Object,
+     * if the stored item is not of type
      * {@link Iterable}, this method will create a {@link Collector} with a {@link List} of
      * one item, which is the stored item, you can then invoke {@link Collector#and(Object)}
      * to append other items to the current items
      *
      * @param type the type of the elements in the stored {@link Iterable} item
-     * @param <R>  the expected type of elements to iterate over
+     * @param <R>  the expected type of elements to collect over
      * @return a {@link Collector} for managing those items
      */
     @SuppressWarnings("unchecked")
-    public <R> Collector<R> iterate(Class<R> type) {
+    public <R> Collector<R> collect(Class<R> type) {
         if (item == null) {
             return new Collector<>(configuration);
         } else if (item instanceof Iterable) {
             return iterableCollector();
         } else if (!type.isAssignableFrom(item.getClass())) {
-            throw new UnsupportedOperationException("iterate() parameter type mismatch");
+            throw new UnsupportedOperationException("collect() parameter type mismatch");
         } else {
             return new Collector<R>(configuration).and((R) item);
         }

@@ -2,6 +2,8 @@ package com.chaining;
 
 import org.junit.Test;
 
+import java.util.concurrent.Callable;
+
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
@@ -359,7 +361,7 @@ public class ConditionTest {
 
 
     @Test
-    public void theMapWithValidConditionThenReturnAnOptionalContainingMappedValue(){
+    public void thenMapWithValidConditionThenReturnAnOptionalContainingMappedValue(){
 
         TestClassTwo result = new Chain<>(new TestClass(),chainConfiguration)
                 .when(new Predicate<TestClass>() {
@@ -384,7 +386,7 @@ public class ConditionTest {
     }
 
     @Test
-    public void theMapWithInvalidConditionThenReturnAnOptionalContainingNull(){
+    public void thenMapWithInvalidConditionThenReturnAnOptionalContainingNull(){
 
         TestClassTwo result = new Chain<>(new TestClass(),chainConfiguration)
                 .when(new Predicate<TestClass>() {
@@ -421,6 +423,115 @@ public class ConditionTest {
 
                     @Override
                     public TestClassTwo apply(TestClass testClass) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                });
+
+    }
+
+    /////////////////////
+
+    @Test
+    public void thenToItemWithValidConditionThenReturnAnOptionalContainingItem(){
+
+        TestClassTwo result = new Chain<>(new TestClass(),chainConfiguration)
+                .when(new Predicate<TestClass>() {
+                    @Override
+                    public boolean test(TestClass testClass) throws Exception {
+                        return true;
+                    }
+                })
+                .thenTo(new TestClassTwo("1"))
+                .defaultIfEmpty(new TestClassTwo("2"))
+                .call();
+
+        assertEquals("1",result.text);
+
+
+    }
+
+    @Test
+    public void thenToItemWithInvalidConditionThenReturnAnOptionalContainingNull(){
+
+        TestClassTwo result = new Chain<>(new TestClass(),chainConfiguration)
+                .when(new Predicate<TestClass>() {
+                    @Override
+                    public boolean test(TestClass testClass) throws Exception {
+                        return false;
+                    }
+                })
+                .thenTo(new TestClassTwo("1"))
+                .defaultIfEmpty(new TestClassTwo("2"))
+                .call();
+
+        assertEquals("2",result.text);
+
+
+    }
+
+  @Test
+    public void thenToCallableWithValidConditionThenReturnAnOptionalContainingMappedValue(){
+
+        TestClassTwo result = new Chain<>(new TestClass(),chainConfiguration)
+                .when(new Predicate<TestClass>() {
+                    @Override
+                    public boolean test(TestClass testClass) throws Exception {
+                        return true;
+                    }
+                })
+                .thenTo(new Callable<TestClassTwo>(){
+
+                    @Override
+                    public TestClassTwo call() throws Exception {
+                        return new TestClassTwo("1");
+                    }
+                })
+                .defaultIfEmpty(new TestClassTwo("2"))
+                .call();
+
+        assertEquals("1",result.text);
+
+
+    }
+
+    @Test
+    public void thenToCallableWithInvalidConditionThenReturnAnOptionalContainingNull(){
+
+        TestClassTwo result = new Chain<>(new TestClass(),chainConfiguration)
+                .when(new Predicate<TestClass>() {
+                    @Override
+                    public boolean test(TestClass testClass) throws Exception {
+                        return false;
+                    }
+                })
+                .thenTo(new Callable<TestClassTwo>(){
+
+                    @Override
+                    public TestClassTwo call() throws Exception {
+                        return new TestClassTwo("1");
+                    }
+                })
+                .defaultIfEmpty(new TestClassTwo("2"))
+                .call();
+
+        assertEquals("2",result.text);
+
+
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void thenToCallableWithExceptionThenThrowException() {
+        new Chain<>(new TestClass(), chainConfiguration)
+                .when(new Predicate<TestClass>() {
+                    @Override
+                    public boolean test(TestClass testClass) throws Exception {
+                        return true;
+                    }
+                })
+                .thenTo(new Callable<TestClassTwo>(){
+
+                    @Override
+                    public TestClassTwo call() throws Exception {
                         throw new UnsupportedOperationException();
                     }
                 });

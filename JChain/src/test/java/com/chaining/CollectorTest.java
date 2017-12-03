@@ -33,41 +33,10 @@ public class CollectorTest {
                 .and(true)
                 .and(false)
                 .and(true)
-                .collect()
+                .toList()
                 .call();
 
         assertTrue(result.get(0) && !result.get(1) && result.get(2));
-    }
-
-    @Test
-    public void collectWithFunctionThenReturnFunctionResultInChain() {
-        boolean result = new Collector<Boolean>(configuration)
-                .and(true)
-                .and(false)
-                .and(true)
-                .collect(new Function<List<Boolean>, Boolean>() {
-                    @Override
-                    public Boolean apply(@NonNull List<Boolean> list) throws Exception {
-                        return list.get(0) && list.get(1) && list.get(2);
-                    }
-                })
-                .call();
-
-        assertFalse(result);
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void collectWithCrashingFunctionThenThrowException() {
-        new Collector<Boolean>(configuration)
-                .and(true)
-                .and(false)
-                .and(true)
-                .collect(new Function<List<Boolean>, Boolean>() {
-                    @Override
-                    public Boolean apply(@NonNull List<Boolean> list) throws Exception {
-                        throw new UnsupportedOperationException();
-                    }
-                });
     }
 
     @Test
@@ -162,7 +131,7 @@ public class CollectorTest {
                         return trueValue ? 1 : 0;
                     }
                 })
-                .collect()
+                .toList()
                 .call();
 
         assertTrue(result.get(0) == 1 && result.get(1) == 0 && result.get(2) == 0);

@@ -4,6 +4,9 @@ package com.chaining;
 import com.chaining.annotations.SideEffect;
 import com.chaining.exceptions.RuntimeExceptionConverter;
 
+import java.util.concurrent.Callable;
+
+import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
@@ -118,4 +121,53 @@ public class Condition<T> {
             return new Chain<>(null, sourceChain.configuration);
         }
     }
+
+    /**
+     * convert to an {@link Optional} containing the passed item based on the previous
+     * {@link Predicate} result
+     *
+     * @param item an item to be the root for the new {@link Optional}
+     * @return a new {@link Optional}
+     */
+    public <R> Optional<R> thenTo(@NonNull R item) {
+        try {
+            return new Optional<>(toChainFromItem(item));
+        } catch (Throwable e) {
+            throw new RuntimeExceptionConverter().apply(e);
+        }
+    }
+
+    private <R> Chain<R> toChainFromItem(R item) throws Exception {
+        if (isSourceChainUpdateAccepted()) {
+            return new Chain<>(item, sourceChain.configuration);
+        } else {
+            return new Chain<>(null, sourceChain.configuration);
+        }
+    }
+
+    /**
+     * convert to an {@link Optional} containing the result of the passed {@link Callable}
+     * based on the previous {@link Predicate} result
+     *
+     * @param itemCallable a {@link Callable} that will return an item to be the root for the new
+     *                     {@link Optional}
+     * @return a new {@link Optional}
+     */
+    public <R> Optional<R> thenTo(@NonNull Callable<R> itemCallable) {
+        try {
+            return new Optional<>(toChainFromCallable(itemCallable));
+        } catch (Exception e) {
+            throw new RuntimeExceptionConverter().apply(e);
+        }
+    }
+
+    private <R> Chain<R> toChainFromCallable(Callable<R> callable) throws Exception {
+        if (isSourceChainUpdateAccepted()) {
+            return new Chain<>(callable.call(), sourceChain.configuration);
+        } else {
+            return new Chain<>(null, sourceChain.configuration);
+        }
+    }
+
+
 }

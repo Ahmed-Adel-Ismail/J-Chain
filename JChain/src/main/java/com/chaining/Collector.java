@@ -40,23 +40,8 @@ public class Collector<T> implements And<T>, Monad<List<T>> {
      *
      * @return a {@link Chain} holding a List of items
      */
-    public Chain<List<T>> collect() {
+    public Chain<List<T>> toList() {
         return new Chain<>(items, chainConfiguration);
-    }
-
-    /**
-     * collect the added items into an Object created from the passed {@link Function}
-     *
-     * @param collectorFunction {@link Function} that takes the items {@link List} as it's
-     *                          parameter, and returns an Object
-     * @return a {@link Chain} holding the Object created from the passed {@link Function}
-     */
-    public <R> Chain<R> collect(Function<List<T>, R> collectorFunction) {
-        try {
-            return new Chain<>(collectorFunction.apply(items), chainConfiguration);
-        } catch (Exception e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
     }
 
     @Override
