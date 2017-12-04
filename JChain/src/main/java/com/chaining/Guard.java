@@ -2,10 +2,12 @@ package com.chaining;
 
 
 import com.chaining.exceptions.RuntimeExceptionConverter;
+import com.chaining.interfaces.ItemHolder;
 
 import java.util.concurrent.Callable;
 
 import io.reactivex.annotations.NonNull;
+import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 
@@ -17,7 +19,7 @@ import io.reactivex.functions.Function;
  * <p>
  * Created by Ahmed Adel Ismail on 11/1/2017.
  */
-public class Guard<T> {
+public class Guard<T> implements ItemHolder<T>{
 
     private final T item;
     private final Exception error;
@@ -110,5 +112,24 @@ public class Guard<T> {
                 throw new RuntimeExceptionConverter().apply(e);
             }
         }
+    }
+
+    /**
+     * start logging operation with the passed tag, to see the logs active, you should
+     * set {@link ChainConfiguration#setLogging(boolean)} to {@code true}, and you should
+     * set the logger function corresponding to the logger method that you will use, for instance
+     * {@link ChainConfiguration#setInfoLogger(BiConsumer)} or
+     * {@link ChainConfiguration#setErrorLogger(BiConsumer)}
+     *
+     * @param tag the tag of the logs
+     * @return a {@link Logger} to handle logging operations
+     */
+    public Logger<Guard<T>,T> log(Object tag) {
+        return new Logger<>(this, configuration, tag);
+    }
+
+    @Override
+    public T getItem() {
+        return item;
     }
 }

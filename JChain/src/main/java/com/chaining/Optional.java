@@ -3,9 +3,11 @@ package com.chaining;
 
 import com.chaining.exceptions.RuntimeExceptionConverter;
 import com.chaining.interfaces.DefaultIfEmpty;
+import com.chaining.interfaces.ItemHolder;
 
 import io.reactivex.Maybe;
 import io.reactivex.annotations.NonNull;
+import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 
@@ -14,7 +16,10 @@ import io.reactivex.functions.Function;
  * <p>
  * Created by Ahmed Adel Ismail on 11/6/2017.
  */
-public class Optional<T> implements Function<Consumer<T>, Optional<T>>, DefaultIfEmpty<T> {
+public class Optional<T> implements
+        ItemHolder<T>,
+        Function<Consumer<T>, Optional<T>>,
+        DefaultIfEmpty<T> {
 
     private final Chain<T> chain;
 
@@ -72,5 +77,39 @@ public class Optional<T> implements Function<Consumer<T>, Optional<T>>, DefaultI
         }
     }
 
+    /**
+     * start logging operation with the passed tag, to see the logs active, you should
+     * set {@link ChainConfiguration#setLogging(boolean)} to {@code true}, and you should
+     * set the logger function corresponding to the logger method that you will use, for instance
+     * {@link ChainConfiguration#setInfoLogger(BiConsumer)} or
+     * {@link ChainConfiguration#setErrorLogger(BiConsumer)}
+     *
+     * @param tag the tag of the logs
+     * @return a {@link Logger} to handle logging operations
+     */
+    public Logger<Optional<T>,T> log(Object tag) {
+        return new Logger<>(this, chain.configuration, tag);
+    }
 
+    /**
+     * invoke the passed {@link Consumer} if the Application is in the debug mode, you can set the
+     * debugging mode in {@link ChainConfiguration} in the Application's {@code onCreate()}
+     *
+     * @param action a {@link Consumer} to be invoked in debugging only
+     */
+    public Optional<T> debug(Consumer<T> action) {
+        if (chain.configuration.isDebugging() && chain.item != null) {
+            try {
+                action.accept(chain.item);
+            } catch (Exception e) {
+                throw new RuntimeExceptionConverter().apply(e);
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public T getItem() {
+        return chain.item;
+    }
 }

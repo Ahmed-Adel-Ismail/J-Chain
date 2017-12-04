@@ -5,6 +5,7 @@ import com.chaining.annotations.SideEffect;
 import com.chaining.exceptions.RuntimeExceptionConverter;
 import com.chaining.interfaces.And;
 import com.chaining.interfaces.DefaultIfEmpty;
+import com.chaining.interfaces.ItemHolder;
 import com.chaining.interfaces.Monad;
 
 import org.javatuples.Pair;
@@ -18,6 +19,7 @@ import io.reactivex.Observable;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.annotations.Nullable;
 import io.reactivex.functions.Action;
+import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.BiPredicate;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
@@ -34,6 +36,7 @@ import static com.functional.curry.Curry.toCallable;
  * Created by Ahmed Adel Ismail on 10/29/2017.
  */
 public class Chain<T> implements
+        ItemHolder<T>,
         Function<Consumer<T>, Chain<T>>,
         Callable<T>,
         DefaultIfEmpty<T>,
@@ -415,5 +418,24 @@ public class Chain<T> implements
         Collector<R> collector = new Collector<>(configuration);
         collector.items.addAll(items);
         return collector;
+    }
+
+    /**
+     * start logging operation with the passed tag, to see the logs active, you should
+     * set {@link ChainConfiguration#setLogging(boolean)} to {@code true}, and you should
+     * set the logger function corresponding to the logger method that you will use, for instance
+     * {@link ChainConfiguration#setInfoLogger(BiConsumer)} or
+     * {@link ChainConfiguration#setErrorLogger(BiConsumer)}
+     *
+     * @param tag the tag of the logs
+     * @return a {@link Logger} to handle logging operations
+     */
+    public Logger<Chain<T>,T> log(Object tag) {
+        return new Logger<>(this, configuration, tag);
+    }
+
+    @Override
+    public T getItem() {
+        return item;
     }
 }

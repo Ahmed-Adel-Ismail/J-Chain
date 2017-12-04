@@ -3,11 +3,13 @@ package com.chaining;
 
 import com.chaining.annotations.SideEffect;
 import com.chaining.exceptions.RuntimeExceptionConverter;
+import com.chaining.interfaces.ItemHolder;
 
 import java.util.concurrent.Callable;
 
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Action;
+import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
@@ -18,15 +20,15 @@ import io.reactivex.functions.Predicate;
  * <p>
  * Created by Ahmed Adel Ismail on 10/29/2017.
  */
-public class Condition<T> {
+public class Condition<T> implements ItemHolder<T>{
 
     private final boolean negateExpression;
     private final Predicate<T> predicate;
-    private final Chain<T> sourceChain;
+    private final Chain<T> chain;
 
-    private Condition(Chain<T> sourceChain, Predicate<T> predicate, boolean negateExpression) {
+    private Condition(Chain<T> chain, Predicate<T> predicate, boolean negateExpression) {
         this.predicate = predicate;
-        this.sourceChain = sourceChain;
+        this.chain = chain;
         this.negateExpression = negateExpression;
     }
 
@@ -56,19 +58,19 @@ public class Condition<T> {
 
     private Chain<T> invokeThenImplementation(Consumer<T> action) throws Exception {
         if (isSourceChainUpdateAccepted())
-            return sourceChain.apply(action);
+            return chain.apply(action);
         else {
-            return sourceChain;
+            return chain;
         }
     }
 
     private boolean isSourceChainUpdateAccepted() throws Exception {
 
-        if (sourceChain.item == null) {
+        if (chain.item == null) {
             return false;
         }
 
-        boolean expression = predicate.test(sourceChain.item);
+        boolean expression = predicate.test(chain.item);
         if (negateExpression) {
             expression = !expression;
         }
@@ -95,7 +97,7 @@ public class Condition<T> {
 
     private Chain<T> invokeThenImplementation(Action action) throws Exception {
         if (isSourceChainUpdateAccepted()) action.run();
-        return sourceChain;
+        return chain;
     }
 
     /**
@@ -116,9 +118,9 @@ public class Condition<T> {
 
     private <R> Chain<R> mappedChain(Function<T, R> mapper) throws Exception {
         if (isSourceChainUpdateAccepted()) {
-            return new Chain<>(mapper.apply(sourceChain.item), sourceChain.configuration);
+            return new Chain<>(mapper.apply(chain.item), chain.configuration);
         } else {
-            return new Chain<>(null, sourceChain.configuration);
+            return new Chain<>(null, chain.configuration);
         }
     }
 
@@ -139,9 +141,9 @@ public class Condition<T> {
 
     private <R> Chain<R> toChainFromItem(R item) throws Exception {
         if (isSourceChainUpdateAccepted()) {
-            return new Chain<>(item, sourceChain.configuration);
+            return new Chain<>(item, chain.configuration);
         } else {
-            return new Chain<>(null, sourceChain.configuration);
+            return new Chain<>(null, chain.configuration);
         }
     }
 
@@ -163,11 +165,28 @@ public class Condition<T> {
 
     private <R> Chain<R> toChainFromCallable(Callable<R> callable) throws Exception {
         if (isSourceChainUpdateAccepted()) {
-            return new Chain<>(callable.call(), sourceChain.configuration);
+            return new Chain<>(callable.call(), chain.configuration);
         } else {
-            return new Chain<>(null, sourceChain.configuration);
+            return new Chain<>(null, chain.configuration);
         }
     }
 
+    /**
+     * start logging operation with the passed tag, to see the logs active, you should
+     * set {@link ChainConfiguration#setLogging(boolean)} to {@code true}, and you should
+     * set the logger function corresponding to the logger method that you will use, for instance
+     * {@link ChainConfiguration#setInfoLogger(BiConsumer)} or
+     * {@link ChainConfiguration#setErrorLogger(BiConsumer)}
+     *
+     * @param tag the tag of the logs
+     * @return a {@link Logger} to handle logging operations
+     */
+    public Logger<Condition<T>,T> log(Object tag) {
+        return new Logger<>(this, chain.configuration, tag);
+    }
 
+    @Override
+    public T getItem() {
+        return chain.item;
+    }
 }

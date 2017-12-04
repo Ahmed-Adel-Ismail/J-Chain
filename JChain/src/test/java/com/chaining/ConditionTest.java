@@ -537,4 +537,28 @@ public class ConditionTest {
                 });
 
     }
+
+    @Test
+    public void logWithSelfAsSourceThenReturnSelfAsSource() {
+        Condition<?> source = Chain.let(0).when(new Predicate<Integer>() {
+            @Override
+            public boolean test(Integer integer) throws Exception {
+                return false;
+            }
+        });
+        Logger<?, ?> logger = source.log("1");
+        assertEquals(source, logger.source);
+    }
+
+    @Test
+    public void logWithStringTagThenReturnLoggerWithThatTag() {
+        Condition<?> source = Chain.let(0).when(new Predicate<Integer>() {
+            @Override
+            public boolean test(Integer integer) throws Exception {
+                return false;
+            }
+        });
+        Logger<?, ?> logger = source.log("1");
+        assertEquals("1", logger.tag);
+    }
 }

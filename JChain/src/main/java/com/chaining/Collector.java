@@ -2,6 +2,7 @@ package com.chaining;
 
 import com.chaining.exceptions.RuntimeExceptionConverter;
 import com.chaining.interfaces.And;
+import com.chaining.interfaces.ItemHolder;
 import com.chaining.interfaces.Monad;
 
 import java.util.LinkedList;
@@ -9,6 +10,7 @@ import java.util.List;
 
 import io.reactivex.Observable;
 import io.reactivex.annotations.NonNull;
+import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Function;
 
@@ -17,7 +19,10 @@ import io.reactivex.functions.Function;
  * <p>
  * Created by Ahmed Adel Ismail on 11/13/2017.
  */
-public class Collector<T> implements And<T>, Monad<List<T>> {
+public class Collector<T> implements
+        ItemHolder<List<T>>,
+        And<T>,
+        Monad<List<T>> {
 
     final List<T> items = new LinkedList<>();
     private final ChainConfigurationImpl chainConfiguration;
@@ -106,5 +111,24 @@ public class Collector<T> implements And<T>, Monad<List<T>> {
                 return new Chain<>(item, chainConfiguration);
             }
         };
+    }
+
+    /**
+     * start logging operation with the passed tag, to see the logs active, you should
+     * set {@link ChainConfiguration#setLogging(boolean)} to {@code true}, and you should
+     * set the logger function corresponding to the logger method that you will use, for instance
+     * {@link ChainConfiguration#setInfoLogger(BiConsumer)} or
+     * {@link ChainConfiguration#setErrorLogger(BiConsumer)}
+     *
+     * @param tag the tag of the logs
+     * @return a {@link Logger} to handle logging operations
+     */
+    public Logger<Collector<T>,List<T>> log(Object tag) {
+        return new Logger<>(this, chainConfiguration, tag);
+    }
+
+    @Override
+    public List<T> getItem() {
+        return items;
     }
 }

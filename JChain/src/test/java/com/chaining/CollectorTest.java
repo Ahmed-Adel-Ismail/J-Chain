@@ -8,6 +8,7 @@ import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Function;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -148,6 +149,20 @@ public class CollectorTest {
                         throw new UnsupportedOperationException();
                     }
                 });
+    }
+
+    @Test
+    public void logWithSelfAsSourceThenReturnSelfAsSource() {
+        Collector<?> source = Chain.let(0).collect(Integer.class);
+        Logger<?, ?> logger = source.log("1");
+        assertEquals(source, logger.source);
+    }
+
+    @Test
+    public void logWithStringTagThenReturnLoggerWithThatTag() {
+        Collector<?> source = Chain.let(0).collect(Integer.class);
+        Logger<?, ?> logger = source.log("1");
+        assertEquals("1", logger.tag);
     }
 
 }

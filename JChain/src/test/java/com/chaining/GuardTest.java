@@ -179,4 +179,28 @@ public class GuardTest {
 
     }
 
+    @Test
+    public void logWithSelfAsSourceThenReturnSelfAsSource() {
+        Guard<?> source = Chain.let(0).guard(new Consumer<Integer>() {
+            @Override
+            public void accept(Integer integer) throws Exception {
+
+            }
+        });
+        Logger<?, ?> logger = source.log("1");
+        assertEquals(source, logger.source);
+    }
+
+    @Test
+    public void logWithStringTagThenReturnLoggerWithThatTag() {
+        Guard<?> source = Chain.let(0).guard(new Consumer<Integer>() {
+            @Override
+            public void accept(Integer integer) throws Exception {
+
+            }
+        });
+        Logger<?, ?> logger = source.log("1");
+        assertEquals("1", logger.tag);
+    }
+
 }

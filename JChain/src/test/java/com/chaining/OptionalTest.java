@@ -119,4 +119,18 @@ public class OptionalTest {
                 });
     }
 
+    @Test
+    public void logWithSelfAsSourceThenReturnSelfAsSource() {
+        Optional<?> source = Chain.optional(0);
+        Logger<?, ?> logger = source.log("1");
+        assertEquals(source, logger.source);
+    }
+
+    @Test
+    public void logWithStringTagThenReturnLoggerWithThatTag() {
+        Optional<?> source = Chain.optional(0);
+        Logger<?, ?> logger = source.log("1");
+        assertEquals("1", logger.tag);
+    }
+
 }

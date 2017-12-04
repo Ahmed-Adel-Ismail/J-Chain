@@ -94,7 +94,7 @@ public class ChainTest {
     @Test
     public void guardMapWithNonCrashingOperationThenReturnMappedItem() {
         TestClassTwo testClass = Chain.let(new TestClass())
-                .guardMap(new Function<TestClass,TestClassTwo>() {
+                .guardMap(new Function<TestClass, TestClassTwo>() {
                     @Override
                     public TestClassTwo apply(@NonNull TestClass testClass) throws Exception {
                         return new TestClassTwo("!");
@@ -108,10 +108,10 @@ public class ChainTest {
     @Test
     public void guardMapWithCrashingOperationThenReturnTheValueOfOnErrorReturnItem() {
         TestClassTwo testClass = Chain.let(new TestClass())
-                .guardMap(new Function<TestClass,TestClassTwo>() {
+                .guardMap(new Function<TestClass, TestClassTwo>() {
                     @Override
                     public TestClassTwo apply(@NonNull TestClass testClass) throws Exception {
-                       throw new UnsupportedOperationException();
+                        throw new UnsupportedOperationException();
                     }
                 }).onErrorReturnItem(new TestClassTwo("!!"))
                 .call();
@@ -542,6 +542,19 @@ public class ChainTest {
         Chain.let(map).collect(Integer.class);
     }
 
+    @Test
+    public void logWithSelfAsSourceThenReturnSelfAsSource() {
+        Chain<?> source = Chain.let(0);
+        Logger<?, ?> logger = source.log("1");
+        assertEquals(source, logger.source);
+    }
+
+    @Test
+    public void logWithStringTagThenReturnLoggerWithThatTag() {
+        Chain<?> source = Chain.let(0);
+        Logger<?, ?> logger = source.log("1");
+        assertEquals("1", logger.tag);
+    }
 
 }
 
