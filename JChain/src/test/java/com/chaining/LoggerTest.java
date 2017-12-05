@@ -1,8 +1,8 @@
 package com.chaining;
 
-import com.chaining.interfaces.ItemHolder;
-
 import org.junit.Test;
+
+import java.util.concurrent.Callable;
 
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Function;
@@ -18,7 +18,7 @@ public class LoggerTest {
     @Test
     public void infoWithNonCrashingMessageThenUpdateLogMessageWithTrueValue() {
 
-        Logger<ItemHolder<Boolean>, Boolean> logger = logger(false,
+        Logger<Callable<Boolean>, Boolean> logger = logger(false,
                 "infoWithNonCrashingMessageThenUpdateLogMessageWithTrueValue");
         LogMessage logMessage = new LogMessage();
 
@@ -28,7 +28,7 @@ public class LoggerTest {
 
     }
 
-    private static Logger<ItemHolder<Boolean>, Boolean> logger(final boolean crash, String configName) {
+    private static Logger<Callable<Boolean>, Boolean> logger(final boolean crash, String configName) {
 
         ChainConfigurationImpl config = ChainConfigurationImpl.getInstance(configName);
         config.setLogging(true);
@@ -57,10 +57,10 @@ public class LoggerTest {
             }
         });
 
-        return new Logger<ItemHolder<Boolean>, Boolean>(new ItemHolder<Boolean>() {
+        return new Logger<Callable<Boolean>, Boolean>(new Callable<Boolean>() {
 
             @Override
-            public Boolean getItem() {
+            public Boolean call() {
                 return !crash;
             }
         }, config, LoggerTest.class);
@@ -69,7 +69,7 @@ public class LoggerTest {
     @Test(expected = UnsupportedOperationException.class)
     public void infoWithCrashingMessageThenCrash() {
 
-        Logger<ItemHolder<Boolean>, Boolean> logger = logger(true,
+        Logger<Callable<Boolean>, Boolean> logger = logger(true,
                 "infoWithCrashingMessageThenCrash");
         LogMessage logMessage = new LogMessage();
 
@@ -79,7 +79,7 @@ public class LoggerTest {
     @Test
     public void errorWithNonCrashingMessageThenUpdateLogMessageWithTrueValue() {
 
-        Logger<ItemHolder<Boolean>, Boolean> logger = logger(false,
+        Logger<Callable<Boolean>, Boolean> logger = logger(false,
                 "errorWithNonCrashingMessageThenUpdateLogMessageWithTrueValue");
         LogMessage logMessage = new LogMessage();
 
@@ -92,7 +92,7 @@ public class LoggerTest {
     @Test(expected = UnsupportedOperationException.class)
     public void errorWithCrashingMessageThenCrash() {
 
-        Logger<ItemHolder<Boolean>, Boolean> logger = logger(true,
+        Logger<Callable<Boolean>, Boolean> logger = logger(true,
                 "errorWithCrashingMessageThenCrash");
         LogMessage logMessage = new LogMessage();
 
@@ -102,7 +102,7 @@ public class LoggerTest {
     @Test
     public void exceptionWithNonCrashingMessageThenUpdateLogMessageWithTrueValue() {
 
-        Logger<ItemHolder<Boolean>, Boolean> logger = logger(false,
+        Logger<Callable<Boolean>, Boolean> logger = logger(false,
                 "exceptionWithNonCrashingMessageThenUpdateLogMessageWithTrueValue");
         LogMessage logMessage = new LogMessage();
 
@@ -115,7 +115,7 @@ public class LoggerTest {
     @Test(expected = UnsupportedOperationException.class)
     public void exceptionWithCrashingMessageThenCrash() {
 
-        Logger<ItemHolder<Boolean>, Boolean> logger = logger(true,
+        Logger<Callable<Boolean>, Boolean> logger = logger(true,
                 "exceptionWithCrashingMessageThenCrash");
         LogMessage logMessage = new LogMessage();
 
@@ -152,10 +152,10 @@ public class LoggerTest {
         };
     }
 
-    private Logger<ItemHolder<Boolean>, Boolean> booleanLogger(ChainConfigurationImpl config) {
-        return new Logger<ItemHolder<Boolean>, Boolean>(new ItemHolder<Boolean>() {
+    private Logger<Callable<Boolean>, Boolean> booleanLogger(ChainConfigurationImpl config) {
+        return new Logger<Callable<Boolean>, Boolean>(new Callable<Boolean>() {
             @Override
-            public Boolean getItem() {
+            public Boolean call() {
                 return true;
             }
         }, config, Logger.class);

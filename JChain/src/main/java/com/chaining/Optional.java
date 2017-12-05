@@ -3,7 +3,8 @@ package com.chaining;
 
 import com.chaining.exceptions.RuntimeExceptionConverter;
 import com.chaining.interfaces.DefaultIfEmpty;
-import com.chaining.interfaces.ItemHolder;
+
+import java.util.concurrent.Callable;
 
 import io.reactivex.Maybe;
 import io.reactivex.annotations.NonNull;
@@ -17,7 +18,7 @@ import io.reactivex.functions.Function;
  * Created by Ahmed Adel Ismail on 11/6/2017.
  */
 public class Optional<T> implements
-        ItemHolder<T>,
+        Callable<T>,
         Function<Consumer<T>, Optional<T>>,
         DefaultIfEmpty<T> {
 
@@ -109,7 +110,7 @@ public class Optional<T> implements
     }
 
     @Override
-    public T getItem() {
+    public T call() {
         return chain.item;
     }
 }

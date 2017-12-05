@@ -1,13 +1,13 @@
 package com.chaining;
 
-import com.chaining.interfaces.ItemHolder;
+import java.util.concurrent.Callable;
 
 /**
  * a logger that uses a pre-build Message
  * <p>
  * Created by Ahmed Adel Ismail on 12/4/2017.
  */
-public class MessageLogger<T extends ItemHolder<I>, I> {
+public class MessageLogger<T extends Callable<I>, I> {
 
     private final Logger<T, I> logger;
     private final Object message;

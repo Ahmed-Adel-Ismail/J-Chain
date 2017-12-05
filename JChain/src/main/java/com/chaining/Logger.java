@@ -1,7 +1,8 @@
 package com.chaining;
 
 import com.chaining.exceptions.RuntimeExceptionConverter;
-import com.chaining.interfaces.ItemHolder;
+
+import java.util.concurrent.Callable;
 
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Function;
@@ -13,11 +14,12 @@ import io.reactivex.functions.Function;
  * <p>
  * Created by Ahmed Adel Ismail on 12/4/2017.
  */
-public class Logger<T extends ItemHolder<I>, I> {
+public class Logger<T extends Callable<I>, I> {
 
     final T source;
-    private final ChainConfigurationImpl configuration;
     final Object tag;
+    private final ChainConfigurationImpl configuration;
+
 
     Logger(T source, ChainConfigurationImpl configuration, Object tag) {
         this.source = source;
@@ -33,7 +35,7 @@ public class Logger<T extends ItemHolder<I>, I> {
      */
     public MessageLogger<T, I> message(Function<I, Object> messageComposer) {
         try {
-            return new MessageLogger<>(this, messageComposer.apply(source.getItem()));
+            return new MessageLogger<>(this, messageComposer.apply(source.call()));
         } catch (Exception e) {
             throw new RuntimeExceptionConverter().apply(e);
         }

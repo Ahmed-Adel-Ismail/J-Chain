@@ -2,7 +2,6 @@ package com.chaining;
 
 
 import com.chaining.exceptions.RuntimeExceptionConverter;
-import com.chaining.interfaces.ItemHolder;
 
 import java.util.concurrent.Callable;
 
@@ -19,7 +18,7 @@ import io.reactivex.functions.Function;
  * <p>
  * Created by Ahmed Adel Ismail on 11/1/2017.
  */
-public class Guard<T> implements ItemHolder<T>{
+public class Guard<T> implements Callable<T> {
 
     private final T item;
     private final Exception error;
@@ -43,12 +42,12 @@ public class Guard<T> implements ItemHolder<T>{
     }
 
     /**
-     * execute the passed {@link Callable} safely, which will handle any thrown {@link Exception}
+     * execute the passed {@link java.util.concurrent.Callable} safely, which will handle any thrown {@link Exception}
      * internally, you will need to call {@link Guard#onErrorReturnItem(Object)} or
      * {@link Guard#onErrorReturn(Function)} to continue chaining the function calls,
      * or you can call {@link #onError(Consumer)} to finish the chain
      *
-     * @param callable a {@link Callable} that may crash
+     * @param callable a {@link java.util.concurrent.Callable} that may crash
      * @param <T>      the type of the returned item
      * @return a {@link Guard} to handle fallback scenarios
      */
@@ -58,7 +57,7 @@ public class Guard<T> implements ItemHolder<T>{
 
 
     /**
-     * provide a fallback item if the {@link Callable} that was passed to this {@link Guard}
+     * provide a fallback item if the {@link java.util.concurrent.Callable} that was passed to this {@link Guard}
      * crashed
      *
      * @param item the fallback item
@@ -73,7 +72,7 @@ public class Guard<T> implements ItemHolder<T>{
     }
 
     /**
-     * provide a {@link Function} that will return a fallback item if the {@link Callable} that was
+     * provide a {@link Function} that will return a fallback item if the {@link java.util.concurrent.Callable} that was
      * passed to this {@link Guard} crashed
      *
      * @param function the function that will provide the fallback item
@@ -129,7 +128,7 @@ public class Guard<T> implements ItemHolder<T>{
     }
 
     @Override
-    public T getItem() {
+    public T call() {
         return item;
     }
 }

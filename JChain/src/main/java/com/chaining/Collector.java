@@ -2,11 +2,11 @@ package com.chaining;
 
 import com.chaining.exceptions.RuntimeExceptionConverter;
 import com.chaining.interfaces.And;
-import com.chaining.interfaces.ItemHolder;
 import com.chaining.interfaces.Monad;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import io.reactivex.Observable;
 import io.reactivex.annotations.NonNull;
@@ -20,7 +20,7 @@ import io.reactivex.functions.Function;
  * Created by Ahmed Adel Ismail on 11/13/2017.
  */
 public class Collector<T> implements
-        ItemHolder<List<T>>,
+        Callable<List<T>>,
         And<T>,
         Monad<List<T>> {
 
@@ -128,7 +128,7 @@ public class Collector<T> implements
     }
 
     @Override
-    public List<T> getItem() {
+    public List<T> call() {
         return items;
     }
 }

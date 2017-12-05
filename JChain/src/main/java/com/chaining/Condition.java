@@ -3,7 +3,6 @@ package com.chaining;
 
 import com.chaining.annotations.SideEffect;
 import com.chaining.exceptions.RuntimeExceptionConverter;
-import com.chaining.interfaces.ItemHolder;
 
 import java.util.concurrent.Callable;
 
@@ -20,7 +19,7 @@ import io.reactivex.functions.Predicate;
  * <p>
  * Created by Ahmed Adel Ismail on 10/29/2017.
  */
-public class Condition<T> implements ItemHolder<T>{
+public class Condition<T> implements Callable<T> {
 
     private final boolean negateExpression;
     private final Predicate<T> predicate;
@@ -147,11 +146,19 @@ public class Condition<T> implements ItemHolder<T>{
         }
     }
 
+    private <R> Chain<R> toChainFromCallable(Callable<R> callable) throws Exception {
+        if (isSourceChainUpdateAccepted()) {
+            return new Chain<>(callable.call(), chain.configuration);
+        } else {
+            return new Chain<>(null, chain.configuration);
+        }
+    }
+
     /**
-     * convert to an {@link Optional} containing the result of the passed {@link Callable}
+     * convert to an {@link Optional} containing the result of the passed {@link java.util.concurrent.Callable}
      * based on the previous {@link Predicate} result
      *
-     * @param itemCallable a {@link Callable} that will return an item to be the root for the new
+     * @param itemCallable a {@link java.util.concurrent.Callable} that will return an item to be the root for the new
      *                     {@link Optional}
      * @return a new {@link Optional}
      */
@@ -160,14 +167,6 @@ public class Condition<T> implements ItemHolder<T>{
             return new Optional<>(toChainFromCallable(itemCallable));
         } catch (Exception e) {
             throw new RuntimeExceptionConverter().apply(e);
-        }
-    }
-
-    private <R> Chain<R> toChainFromCallable(Callable<R> callable) throws Exception {
-        if (isSourceChainUpdateAccepted()) {
-            return new Chain<>(callable.call(), chain.configuration);
-        } else {
-            return new Chain<>(null, chain.configuration);
         }
     }
 
@@ -186,7 +185,7 @@ public class Condition<T> implements ItemHolder<T>{
     }
 
     @Override
-    public T getItem() {
+    public T call() {
         return chain.item;
     }
 }
