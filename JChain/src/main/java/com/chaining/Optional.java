@@ -26,11 +26,6 @@ public class Optional<T> implements
         this.chain = new Chain<>(item, configuration);
     }
 
-//    Optional(Chain<T> chain) {
-//        this.chain = chain;
-//    }
-
-
     @Override
     public Chain<T> defaultIfEmpty(@NonNull T defaultValue) {
         if (chain.item == null) {
