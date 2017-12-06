@@ -227,8 +227,14 @@ class InternalObject implements Internal<InternalObject, Boolean> {
     }
 
     @Override
-    public Proxy<InternalObject, Boolean> proxy() {
+    public Proxy<InternalObject, Boolean> access() {
         return new Proxy<InternalObject, Boolean>() {
+
+            @Override
+            InternalObject owner() {
+                return InternalObject.this;
+            }
+
             @Override
             InternalObject copy(Boolean item, InternalConfiguration configuration) {
                 return new InternalObject(item, configuration);

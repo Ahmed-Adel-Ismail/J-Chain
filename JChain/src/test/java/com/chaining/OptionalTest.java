@@ -15,7 +15,7 @@ public class OptionalTest {
     @Test
     public void applyWithTestClassValueForNonNullChainThenInvokeApply() {
 
-        TestClass testClass = new Optional<TestClass>(Chain.let(new TestClass()))
+        TestClass testClass = Chain.optional(new TestClass())
                 .apply(new Consumer<TestClass>() {
                     @Override
                     public void accept(TestClass testClass) {
@@ -32,7 +32,7 @@ public class OptionalTest {
     @Test
     public void applyWithNullChainThenDoNothing() {
 
-        TestClass testClass = new Optional<>(Chain.<TestClass>let(null))
+        TestClass testClass = Chain.<TestClass>optional(null)
                 .apply(new Consumer<TestClass>() {
                     @Override
                     public void accept(TestClass testClass) {
@@ -48,7 +48,7 @@ public class OptionalTest {
     @Test(expected = UnsupportedOperationException.class)
     public void applyWithCrashThenThrowException() {
 
-        new Optional<>(Chain.let(new TestClass()))
+        Chain.optional(new TestClass())
                 .apply(new Consumer<TestClass>() {
                     @Override
                     public void accept(TestClass testClass) throws Exception {
@@ -60,7 +60,7 @@ public class OptionalTest {
     @Test
     public void defaultIfEmptyWithTestClassValueForNotNullChainThenReturnOriginalTestClass() {
 
-        TestClass testClass = new Optional<>(Chain.let(new TestClass("1")))
+        TestClass testClass = Chain.optional(new TestClass("1"))
                 .defaultIfEmpty(new TestClass("2"))
                 .call();
 
@@ -70,7 +70,7 @@ public class OptionalTest {
     @Test
     public void defaultIfEmptyWithTestClassValueForNullChainThenReturnTestClass() {
 
-        TestClass testClass = new Optional<>(Chain.<TestClass>let(null))
+        TestClass testClass = Chain.<TestClass>optional(null)
                 .defaultIfEmpty(new TestClass("2"))
                 .call();
 
@@ -80,7 +80,7 @@ public class OptionalTest {
     @Test
     public void mapWithTestClassTwoForTestClassChainThenReturnTestClassTwo() {
 
-        TestClassTwo testClassTwo = new Optional<>(Chain.let(new TestClass()))
+        TestClassTwo testClassTwo = Chain.optional(new TestClass())
                 .map(new Function<TestClass, TestClassTwo>() {
                     @Override
                     public TestClassTwo apply(TestClass testClass) {
@@ -97,7 +97,7 @@ public class OptionalTest {
     @Test
     public void mapWithNullChainThenDoNothing() {
 
-        TestClassTwo testClassTwo = new Optional<>(Chain.<TestClass>let(null))
+        TestClassTwo testClassTwo = Chain.<TestClass>optional(null)
                 .map(new Function<TestClass, TestClassTwo>() {
                     @Override
                     public TestClassTwo apply(TestClass testClass) {
@@ -113,7 +113,7 @@ public class OptionalTest {
     @Test(expected = UnsupportedOperationException.class)
     public void mapWithCrashThenThrowException() {
 
-        new Optional<>(Chain.let(new TestClass()))
+        Chain.optional(new TestClass())
                 .map(new Function<TestClass, TestClassTwo>() {
                     @Override
                     public TestClassTwo apply(TestClass testClass) {
@@ -181,7 +181,7 @@ public class OptionalTest {
         Optional<Integer> optional = new Optional<>(0,InternalConfiguration
                         .getInstance("runOptionalProxyTesterWithNonNullValue"));
 
-        new ProxyTester<>(optional.proxy(), 1).run();
+        new ProxyTester<>(optional, 1).run();
     }
 
     @Test
@@ -189,7 +189,7 @@ public class OptionalTest {
         Optional<Integer> optional = new Optional<>(null,InternalConfiguration
                 .getInstance("runOptionalProxyTesterWithNullValue"));
 
-        new ProxyTester<>(optional.proxy(), 1).run();
+        new ProxyTester<>(optional, 1).run();
     }
 
 }

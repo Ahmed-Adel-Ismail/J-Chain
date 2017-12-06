@@ -8,6 +8,12 @@ package com.chaining;
  */
 abstract class Proxy<S, T> {
 
+    /**
+     * access the Outer Object of this {@link Proxy}
+     *
+     * @return the Outer Object
+     */
+    abstract S owner();
 
     /**
      * copy the Outer Object with a different item in it
@@ -48,6 +54,4 @@ abstract class Proxy<S, T> {
      * @return the item stored in the outer Object
      */
     abstract T getItem();
-
-
 }

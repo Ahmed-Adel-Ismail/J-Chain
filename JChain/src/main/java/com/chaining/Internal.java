@@ -8,11 +8,12 @@ package com.chaining;
 interface Internal<S, T> {
 
     /**
-     * access the {@link Proxy} of the current Object
+     * access the {@link Proxy} of the current Object, this is used internally only, not part of
+     * the API
      *
      * @return a {@link Proxy} to access the internal methods based on visibility restriction
      */
-    Proxy<S, T> proxy();
+    Proxy<S, T> access();
 
 }
 

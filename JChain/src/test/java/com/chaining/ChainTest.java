@@ -559,7 +559,7 @@ public class ChainTest {
         Chain<Integer> chain =
                 new Chain<>(0,InternalConfiguration.getInstance("runChainProxyTester"));
 
-        new ProxyTester<>(chain.proxy(),1).run();
+        new ProxyTester<>(chain,1).run();
     }
 
 }

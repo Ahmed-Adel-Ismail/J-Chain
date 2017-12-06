@@ -26,9 +26,9 @@ public class Optional<T> implements
         this.chain = new Chain<>(item, configuration);
     }
 
-    Optional(Chain<T> chain) {
-        this.chain = chain;
-    }
+//    Optional(Chain<T> chain) {
+//        this.chain = chain;
+//    }
 
 
     @Override
@@ -66,17 +66,17 @@ public class Optional<T> implements
      */
     public <R> Optional<R> map(Function<T, R> mapper) {
         try {
-            return new Optional<>(mappedChain(mapper));
+            return mappedOptional(mapper);
         } catch (Exception e) {
             throw new RuntimeExceptionConverter().apply(e);
         }
     }
 
-    private <R> Chain<R> mappedChain(Function<T, R> mapper) throws Exception {
+    private <R> Optional<R> mappedOptional(Function<T, R> mapper) throws Exception {
         if (chain.item != null) {
-            return new Chain<>(mapper.apply(chain.item), chain.configuration);
+            return new Optional<>(mapper.apply(chain.item), chain.configuration);
         } else {
-            return new Chain<>(null, chain.configuration);
+            return new Optional<>(null, chain.configuration);
         }
     }
 
@@ -112,7 +112,7 @@ public class Optional<T> implements
     }
 
     @Override
-    public Proxy<Optional<T>, T> proxy() {
+    public Proxy<Optional<T>, T> access() {
         return new Proxy<Optional<T>, T>() {
             @Override
             Optional<T> copy(T item, InternalConfiguration configuration) {
@@ -127,6 +127,11 @@ public class Optional<T> implements
             @Override
             T getItem() {
                 return chain.item;
+            }
+
+            @Override
+            Optional<T> owner() {
+                return Optional.this;
             }
         };
     }

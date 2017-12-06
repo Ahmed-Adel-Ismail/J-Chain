@@ -173,6 +173,6 @@ public class CollectorTest {
 
         collector.and(1).and(2).and(3);
 
-        new ProxyTester<>(collector.proxy(), Arrays.asList(4,5,6)).run();
+        new ProxyTester<>(collector, Arrays.asList(4,5,6)).run();
     }
 }

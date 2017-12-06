@@ -540,7 +540,7 @@ public class ConditionTest {
 
     @Test
     public void logWithSelfAsSourceThenReturnSelfAsSource() {
-        Condition<?> source = Chain.let(0).when(new Predicate<Integer>() {
+        Condition<?,?> source = Chain.let(0).when(new Predicate<Integer>() {
             @Override
             public boolean test(Integer integer) throws Exception {
                 return false;
@@ -552,7 +552,7 @@ public class ConditionTest {
 
     @Test
     public void logWithStringTagThenReturnLoggerWithThatTag() {
-        Condition<?> source = Chain.let(0).when(new Predicate<Integer>() {
+        Condition<?,?> source = Chain.let(0).when(new Predicate<Integer>() {
             @Override
             public boolean test(Integer integer) throws Exception {
                 return false;
@@ -564,7 +564,7 @@ public class ConditionTest {
 
     @Test
     public void runNormalConditionProxyTester() {
-        Condition<Integer> condition = Chain.let(0)
+        Condition<?,Integer> condition = Chain.let(0)
                 .when(new Predicate<Integer>() {
                     @Override
                     public boolean test(Integer integer) throws Exception {
@@ -572,12 +572,12 @@ public class ConditionTest {
                     }
                 });
 
-        new ProxyTester<>(condition.proxy(), 1).run();
+        new ProxyTester<>(condition, 1).run();
     }
 
     @Test
     public void runNegatedConditionProxyTester() {
-        Condition<Integer> condition = Chain.let(0)
+        Condition<?,Integer> condition = Chain.let(0)
                 .whenNot(new Predicate<Integer>() {
                     @Override
                     public boolean test(Integer integer) throws Exception {
@@ -585,6 +585,6 @@ public class ConditionTest {
                     }
                 });
 
-        new ProxyTester<>(condition.proxy(), 1).run();
+        new ProxyTester<>(condition, 1).run();
     }
 }

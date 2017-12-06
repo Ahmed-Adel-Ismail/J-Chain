@@ -212,6 +212,6 @@ public class GuardTest {
             }
         });
 
-        new ProxyTester<>(guard.proxy(), 1).run();
+        new ProxyTester<>(guard, 1).run();
     }
 }

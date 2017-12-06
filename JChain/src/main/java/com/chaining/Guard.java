@@ -134,7 +134,7 @@ public class Guard<T> implements Internal<Guard<T>, T> {
     }
 
     @Override
-    public Proxy<Guard<T>, T> proxy() {
+    public Proxy<Guard<T>, T> access() {
         return new Proxy<Guard<T>, T>() {
             @Override
             Guard<T> copy(T item, InternalConfiguration configuration) {
@@ -149,6 +149,11 @@ public class Guard<T> implements Internal<Guard<T>, T> {
             @Override
             T getItem() {
                 return item;
+            }
+
+            @Override
+            Guard<T> owner() {
+                return Guard.this;
             }
         };
     }

@@ -127,7 +127,7 @@ public class Collector<T> implements
     }
 
     @Override
-    public Proxy<Collector<T>, List<T>> proxy() {
+    public Proxy<Collector<T>, List<T>> access() {
         return new Proxy<Collector<T>, List<T>>() {
             @Override
             List<T> getItem() {
@@ -144,6 +144,11 @@ public class Collector<T> implements
                 Collector<T> collector = new Collector<>(configuration);
                 collector.items.addAll(items);
                 return collector;
+            }
+
+            @Override
+            Collector<T> owner() {
+                return Collector.this;
             }
         };
     }

@@ -19,24 +19,27 @@ import io.reactivex.functions.Predicate;
  * <p>
  * Created by Ahmed Adel Ismail on 10/29/2017.
  */
-public class Condition<T> implements Internal<Condition<T>, T> {
+public class Condition<S extends Conditional<S, T>, T> implements Internal<Condition<S, T>, T> {
 
     private final boolean negateExpression;
     private final Predicate<T> predicate;
-    private final Chain<T> chain;
+    private final Proxy<S, T> sourceProxy;
 
-    private Condition(Chain<T> chain, Predicate<T> predicate, boolean negateExpression) {
+    private Condition(S source, Predicate<T> predicate, boolean negateExpression) {
+        this.sourceProxy = source.access();
         this.predicate = predicate;
-        this.chain = chain;
         this.negateExpression = negateExpression;
+
     }
 
-    static <T> Condition<T> createNormal(Chain<T> sourceChain, Predicate<T> predicate) {
-        return new Condition<>(sourceChain, predicate, false);
+    static <S extends Conditional<S, T>, T> Condition<S, T>
+    createNormal(S source, Predicate<T> predicate) {
+        return new Condition<>(source, predicate, false);
     }
 
-    static <T> Condition<T> createNegated(Chain<T> sourceChain, Predicate<T> predicate) {
-        return new Condition<>(sourceChain, predicate, true);
+    static <S extends Conditional<S, T>, T> Condition<S, T>
+    createNegated(S source, Predicate<T> predicate) {
+        return new Condition<>(source, predicate, true);
     }
 
     /**
@@ -46,7 +49,7 @@ public class Condition<T> implements Internal<Condition<T>, T> {
      * @return the {@link Chain} with the updated state (if the {@link Predicate} returned
      * {@code true}, or will return it with no updates
      */
-    public Chain<T> then(Consumer<T> action) {
+    public S then(Consumer<T> action) {
         try {
             return invokeThenImplementation(action);
         } catch (Exception e) {
@@ -55,21 +58,22 @@ public class Condition<T> implements Internal<Condition<T>, T> {
 
     }
 
-    private Chain<T> invokeThenImplementation(Consumer<T> action) throws Exception {
+    private S invokeThenImplementation(Consumer<T> action) throws Exception {
         if (isSourceChainUpdateAccepted())
-            return chain.apply(action);
+            return sourceProxy.owner().apply(action);
         else {
-            return chain;
+            return sourceProxy.owner();
         }
     }
 
     private boolean isSourceChainUpdateAccepted() throws Exception {
 
-        if (chain.item == null) {
+        T item = sourceProxy.getItem();
+        if (item == null) {
             return false;
         }
 
-        boolean expression = predicate.test(chain.item);
+        boolean expression = predicate.test(item);
         if (negateExpression) {
             expression = !expression;
         }
@@ -85,7 +89,7 @@ public class Condition<T> implements Internal<Condition<T>, T> {
      * {@code true}, or will return it with no updates
      */
     @SideEffect("usually this operation is done for side-effects")
-    public Chain<T> invoke(Action action) {
+    public S invoke(Action action) {
         try {
             return invokeThenImplementation(action);
         } catch (Exception e) {
@@ -94,9 +98,9 @@ public class Condition<T> implements Internal<Condition<T>, T> {
 
     }
 
-    private Chain<T> invokeThenImplementation(Action action) throws Exception {
+    private S invokeThenImplementation(Action action) throws Exception {
         if (isSourceChainUpdateAccepted()) action.run();
-        return chain;
+        return sourceProxy.owner();
     }
 
     /**
@@ -109,17 +113,17 @@ public class Condition<T> implements Internal<Condition<T>, T> {
      */
     public <R> Optional<R> thenMap(Function<T, R> mapper) {
         try {
-            return new Optional<>(mappedChain(mapper));
+            return mappedOptional(mapper);
         } catch (Exception e) {
             throw new RuntimeExceptionConverter().apply(e);
         }
     }
 
-    private <R> Chain<R> mappedChain(Function<T, R> mapper) throws Exception {
+    private <R> Optional<R> mappedOptional(Function<T, R> mapper) throws Exception {
         if (isSourceChainUpdateAccepted()) {
-            return new Chain<>(mapper.apply(chain.item), chain.configuration);
+            return new Optional<>(mapper.apply(sourceProxy.getItem()), sourceProxy.getConfiguration());
         } else {
-            return new Chain<>(null, chain.configuration);
+            return new Optional<>(null, sourceProxy.getConfiguration());
         }
     }
 
@@ -132,27 +136,20 @@ public class Condition<T> implements Internal<Condition<T>, T> {
      */
     public <R> Optional<R> thenTo(@NonNull R item) {
         try {
-            return new Optional<>(toChainFromItem(item));
+            return toOptionalFromItem(item);
         } catch (Throwable e) {
             throw new RuntimeExceptionConverter().apply(e);
         }
     }
 
-    private <R> Chain<R> toChainFromItem(R item) throws Exception {
+    private <R> Optional<R> toOptionalFromItem(R item) throws Exception {
         if (isSourceChainUpdateAccepted()) {
-            return new Chain<>(item, chain.configuration);
+            return new Optional<>(item, sourceProxy.getConfiguration());
         } else {
-            return new Chain<>(null, chain.configuration);
+            return new Optional<>(null, sourceProxy.getConfiguration());
         }
     }
 
-    private <R> Chain<R> toChainFromCallable(Callable<R> callable) throws Exception {
-        if (isSourceChainUpdateAccepted()) {
-            return new Chain<>(callable.call(), chain.configuration);
-        } else {
-            return new Chain<>(null, chain.configuration);
-        }
-    }
 
     /**
      * convert to an {@link Optional} containing the result of the passed {@link java.util.concurrent.Callable}
@@ -164,9 +161,18 @@ public class Condition<T> implements Internal<Condition<T>, T> {
      */
     public <R> Optional<R> thenTo(@NonNull Callable<R> itemCallable) {
         try {
-            return new Optional<>(toChainFromCallable(itemCallable));
+            return toOptionalFromCallable(itemCallable);
         } catch (Exception e) {
             throw new RuntimeExceptionConverter().apply(e);
+        }
+    }
+
+
+    private <R> Optional<R> toOptionalFromCallable(Callable<R> callable) throws Exception {
+        if (isSourceChainUpdateAccepted()) {
+            return new Optional<>(callable.call(), sourceProxy.getConfiguration());
+        } else {
+            return new Optional<>(null, sourceProxy.getConfiguration());
         }
     }
 
@@ -180,28 +186,32 @@ public class Condition<T> implements Internal<Condition<T>, T> {
      * @param tag the tag of the logs
      * @return a {@link Logger} to handle logging operations
      */
-    public Logger<Condition<T>, T> log(Object tag) {
-        return new Logger<>(this, chain.configuration, tag);
+    public Logger<Condition<S, T>, T> log(Object tag) {
+        return new Logger<>(this, sourceProxy.getConfiguration(), tag);
     }
 
 
     @Override
-    public Proxy<Condition<T>, T> proxy() {
-        return new Proxy<Condition<T>, T>() {
+    public Proxy<Condition<S, T>, T> access() {
+        return new Proxy<Condition<S, T>, T>() {
             @Override
             T getItem() {
-                return chain.item;
+                return sourceProxy.getItem();
             }
 
             @Override
             InternalConfiguration getConfiguration() {
-                return chain.configuration;
+                return sourceProxy.getConfiguration();
             }
 
             @Override
-            Condition<T> copy(T item, InternalConfiguration configuration) {
-                Chain<T> chain = new Chain<>(item, configuration);
-                return new Condition<>(chain, predicate, negateExpression);
+            Condition<S, T> copy(T item, InternalConfiguration configuration) {
+                return new Condition<>(sourceProxy.copy(item, configuration), predicate, negateExpression);
+            }
+
+            @Override
+            Condition<S, T> owner() {
+                return Condition.this;
             }
         };
     }

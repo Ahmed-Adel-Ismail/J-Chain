@@ -35,6 +35,7 @@ import static com.functional.curry.Curry.toCallable;
  * Created by Ahmed Adel Ismail on 10/29/2017.
  */
 public class Chain<T> implements
+        Conditional<Chain<T>, T>,
         Internal<Chain<T>, T>,
         Callable<T>,
         Function<Consumer<T>, Chain<T>>,
@@ -58,9 +59,8 @@ public class Chain<T> implements
      * @param <T>  the expected item type
      * @return an {@link Optional} to handle the value
      */
-    @SuppressWarnings("ConstantConditions")
     public static <T> Optional<T> optional(@Nullable T item) {
-        return new Optional<>(new Chain<>(item, InternalConfiguration.getInstance(null)));
+        return new Optional<>(item, InternalConfiguration.getInstance(null));
     }
 
     /**
@@ -135,7 +135,7 @@ public class Chain<T> implements
      * @return a {@link Condition} to supply it's {@link Condition#then(Consumer)}
      * {@link Consumer}
      */
-    public Condition<T> when(Predicate<T> predicate) {
+    public Condition<Chain<T>, T> when(Predicate<T> predicate) {
         return Condition.createNormal(this, predicate);
     }
 
@@ -150,7 +150,7 @@ public class Chain<T> implements
      * @return a {@link Condition} to supply it's {@link Condition#then(Consumer)}
      * {@link Consumer}
      */
-    public Condition<T> whenNot(Predicate<T> predicate) {
+    public Condition<Chain<T>, T> whenNot(Predicate<T> predicate) {
         return Condition.createNegated(this, predicate);
     }
 
@@ -327,7 +327,7 @@ public class Chain<T> implements
 
     @Override
     public Chain<T> defaultIfEmpty(@NonNull T defaultValue) {
-        return new Optional<>(this).defaultIfEmpty(defaultValue);
+        return new Optional<>(item, configuration).defaultIfEmpty(defaultValue);
     }
 
     /**
@@ -434,7 +434,7 @@ public class Chain<T> implements
     }
 
     @Override
-    public Proxy<Chain<T>, T> proxy() {
+    public Proxy<Chain<T>, T> access() {
         return new Proxy<Chain<T>, T>() {
 
             @Override
@@ -450,6 +450,11 @@ public class Chain<T> implements
             @Override
             Chain<T> copy(T item, InternalConfiguration configuration) {
                 return new Chain<>(item, configuration);
+            }
+
+            @Override
+            Chain<T> owner() {
+                return Chain.this;
             }
         };
     }

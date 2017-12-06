@@ -33,7 +33,7 @@ public class Logger<S extends Internal<S,T>, T> {
      */
     public MessageLogger<S, T> message(Function<T, Object> messageComposer) {
         try {
-            return new MessageLogger<>(this, messageComposer.apply(source.proxy().getItem()));
+            return new MessageLogger<>(this, messageComposer.apply(source.access().getItem()));
         } catch (Exception e) {
             throw new RuntimeExceptionConverter().apply(e);
         }
