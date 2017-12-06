@@ -2,8 +2,6 @@ package com.chaining;
 
 import com.chaining.exceptions.RuntimeExceptionConverter;
 
-import java.util.concurrent.Callable;
-
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Function;
 
@@ -14,14 +12,14 @@ import io.reactivex.functions.Function;
  * <p>
  * Created by Ahmed Adel Ismail on 12/4/2017.
  */
-public class Logger<T extends Callable<I>, I> {
+public class Logger<S extends Internal<S,T>, T> {
 
-    final T source;
+    final S source;
     final Object tag;
-    private final ChainConfigurationImpl configuration;
+    private final InternalConfiguration configuration;
 
 
-    Logger(T source, ChainConfigurationImpl configuration, Object tag) {
+    Logger(S source, InternalConfiguration configuration, Object tag) {
         this.source = source;
         this.configuration = configuration;
         this.tag = tag;
@@ -33,9 +31,9 @@ public class Logger<T extends Callable<I>, I> {
      * @param messageComposer the message composer function
      * @return a {@link MessageLogger} to handle logging the message
      */
-    public MessageLogger<T, I> message(Function<I, Object> messageComposer) {
+    public MessageLogger<S, T> message(Function<T, Object> messageComposer) {
         try {
-            return new MessageLogger<>(this, messageComposer.apply(source.call()));
+            return new MessageLogger<>(this, messageComposer.apply(source.proxy().getItem()));
         } catch (Exception e) {
             throw new RuntimeExceptionConverter().apply(e);
         }
@@ -50,7 +48,7 @@ public class Logger<T extends Callable<I>, I> {
      * @param message the message to be logged
      * @return the starter of this {@link Logger}
      */
-    public T info(Object message) {
+    public S info(Object message) {
         if (configuration.isLogging() && configuration.getInfoLogger() != null) {
             guardAccept(configuration.getInfoLogger(), message);
         }
@@ -74,7 +72,7 @@ public class Logger<T extends Callable<I>, I> {
      * @param message the message to be logged
      * @return the starter of this {@link Logger}
      */
-    public T error(Object message) {
+    public S error(Object message) {
         if (configuration.isLogging() && configuration.getErrorLogger() != null) {
             guardAccept(configuration.getErrorLogger(), message);
         }
@@ -90,7 +88,7 @@ public class Logger<T extends Callable<I>, I> {
      * @param exception the exception to be logged
      * @return the starter of this {@link Logger}
      */
-    public T exception(Throwable exception) {
+    public S exception(Throwable exception) {
         if (configuration.isLogging() && configuration.getErrorLogger() != null) {
             guardAccept(configuration.getExceptionLogger(), exception);
         }

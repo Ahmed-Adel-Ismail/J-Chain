@@ -18,13 +18,19 @@ import io.reactivex.functions.Function;
  * <p>
  * Created by Ahmed Adel Ismail on 11/1/2017.
  */
-public class Guard<T> implements Callable<T> {
+public class Guard<T> implements Internal<Guard<T>, T> {
 
     private final T item;
     private final Exception error;
-    private final ChainConfigurationImpl configuration;
+    private final InternalConfiguration configuration;
 
-    Guard(Callable<T> callable, ChainConfigurationImpl configuration) {
+    private Guard(T item, Exception error, InternalConfiguration configuration) {
+        this.item = item;
+        this.error = error;
+        this.configuration = configuration;
+    }
+
+    Guard(Callable<T> callable, InternalConfiguration configuration) {
 
         T callResult = null;
         Exception callError = null;
@@ -52,7 +58,7 @@ public class Guard<T> implements Callable<T> {
      * @return a {@link Guard} to handle fallback scenarios
      */
     public static <T> Guard<T> call(@NonNull Callable<T> callable) {
-        return new Guard<>(callable, ChainConfigurationImpl.getInstance(null));
+        return new Guard<>(callable, InternalConfiguration.getInstance(null));
     }
 
 
@@ -123,12 +129,27 @@ public class Guard<T> implements Callable<T> {
      * @param tag the tag of the logs
      * @return a {@link Logger} to handle logging operations
      */
-    public Logger<Guard<T>,T> log(Object tag) {
+    public Logger<Guard<T>, T> log(Object tag) {
         return new Logger<>(this, configuration, tag);
     }
 
     @Override
-    public T call() {
-        return item;
+    public Proxy<Guard<T>, T> proxy() {
+        return new Proxy<Guard<T>, T>() {
+            @Override
+            Guard<T> copy(T item, InternalConfiguration configuration) {
+                return new Guard<>(item, error, configuration);
+            }
+
+            @Override
+            InternalConfiguration getConfiguration() {
+                return configuration;
+            }
+
+            @Override
+            T getItem() {
+                return item;
+            }
+        };
     }
 }

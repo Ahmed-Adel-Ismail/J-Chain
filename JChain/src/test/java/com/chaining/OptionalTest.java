@@ -2,10 +2,13 @@ package com.chaining;
 
 import org.junit.Test;
 
+import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class OptionalTest {
 
@@ -131,6 +134,62 @@ public class OptionalTest {
         Optional<?> source = Chain.optional(0);
         Logger<?, ?> logger = source.log("1");
         assertEquals("1", logger.tag);
+    }
+
+    @Test
+    public void debugWhileChainConfigIsDebuggingThenInvokeDebug() {
+
+        InternalConfiguration config = InternalConfiguration
+                .getInstance("debugWhileChainConfigIsDebuggingThenInvokeDebug");
+        config.setDebugging(true);
+
+        final boolean[] result = {false};
+
+        new Optional<>(new TestClass(), config)
+                .debug(new Consumer<TestClass>() {
+                    @Override
+                    public void accept(@NonNull TestClass testClass) throws Exception {
+                        result[0] = true;
+                    }
+                });
+
+        assertTrue(result[0]);
+    }
+
+    @Test
+    public void debugWhileChainConfigIsNotDebuggingThenDoNotInvokeDebug() {
+
+        InternalConfiguration config = InternalConfiguration
+                .getInstance("debugWhileChainConfigIsNotDebuggingThenDoNotInvokeDebug");
+        config.setDebugging(false);
+
+        final boolean[] result = {false};
+
+        new Optional<>(new TestClass(), config)
+                .debug(new Consumer<TestClass>() {
+                    @Override
+                    public void accept(@NonNull TestClass testClass) throws Exception {
+                        result[0] = true;
+                    }
+                });
+
+        assertFalse(result[0]);
+    }
+
+    @Test
+    public void runOptionalProxyTesterWithNonNullValue() {
+        Optional<Integer> optional = new Optional<>(0,InternalConfiguration
+                        .getInstance("runOptionalProxyTesterWithNonNullValue"));
+
+        new ProxyTester<>(optional.proxy(), 1).run();
+    }
+
+    @Test
+    public void runOptionalProxyTesterWithNullValue() {
+        Optional<Integer> optional = new Optional<>(null,InternalConfiguration
+                .getInstance("runOptionalProxyTesterWithNullValue"));
+
+        new ProxyTester<>(optional.proxy(), 1).run();
     }
 
 }

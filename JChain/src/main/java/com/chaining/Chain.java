@@ -35,6 +35,7 @@ import static com.functional.curry.Curry.toCallable;
  * Created by Ahmed Adel Ismail on 10/29/2017.
  */
 public class Chain<T> implements
+        Internal<Chain<T>, T>,
         Callable<T>,
         Function<Consumer<T>, Chain<T>>,
         DefaultIfEmpty<T>,
@@ -42,9 +43,9 @@ public class Chain<T> implements
         Monad<T> {
 
     final T item;
-    final ChainConfigurationImpl configuration;
+    final InternalConfiguration configuration;
 
-    Chain(T item, ChainConfigurationImpl configuration) {
+    Chain(T item, InternalConfiguration configuration) {
         this.item = item;
         this.configuration = configuration;
     }
@@ -59,7 +60,7 @@ public class Chain<T> implements
      */
     @SuppressWarnings("ConstantConditions")
     public static <T> Optional<T> optional(@Nullable T item) {
-        return new Optional<>(new Chain<>(item, ChainConfigurationImpl.getInstance(null)));
+        return new Optional<>(new Chain<>(item, InternalConfiguration.getInstance(null)));
     }
 
     /**
@@ -70,7 +71,7 @@ public class Chain<T> implements
      * @return a new {@link Chain}
      */
     public static <T> Chain<T> let(@NonNull T item) {
-        return new Chain<>(item, ChainConfigurationImpl.getInstance(null));
+        return new Chain<>(item, InternalConfiguration.getInstance(null));
     }
 
     /**
@@ -83,7 +84,7 @@ public class Chain<T> implements
      */
     public static <T> Chain<T> call(@NonNull Callable<T> callable) {
         try {
-            return new Chain<>(callable.call(), ChainConfigurationImpl.getInstance(null));
+            return new Chain<>(callable.call(), InternalConfiguration.getInstance(null));
         } catch (Exception e) {
             throw new RuntimeExceptionConverter().apply(e);
         }
@@ -296,7 +297,7 @@ public class Chain<T> implements
      * @return a new {@link Chain}
      */
     public <R> Chain<R> to(@NonNull R item) {
-        return new Chain<>(item, ChainConfigurationImpl.getInstance(null));
+        return new Chain<>(item, InternalConfiguration.getInstance(null));
     }
 
     /**
@@ -308,7 +309,7 @@ public class Chain<T> implements
      */
     public <R> Chain<R> to(@NonNull Callable<R> itemCallable) {
         try {
-            return new Chain<>(itemCallable.call(), ChainConfigurationImpl.getInstance(null));
+            return new Chain<>(itemCallable.call(), InternalConfiguration.getInstance(null));
         } catch (Exception e) {
             throw new RuntimeExceptionConverter().apply(e);
         }
@@ -432,4 +433,24 @@ public class Chain<T> implements
         return new Logger<>(this, configuration, tag);
     }
 
+    @Override
+    public Proxy<Chain<T>, T> proxy() {
+        return new Proxy<Chain<T>, T>() {
+
+            @Override
+            T getItem() {
+                return item;
+            }
+
+            @Override
+            InternalConfiguration getConfiguration() {
+                return configuration;
+            }
+
+            @Override
+            Chain<T> copy(T item, InternalConfiguration configuration) {
+                return new Chain<>(item, configuration);
+            }
+        };
+    }
 }

@@ -203,4 +203,15 @@ public class GuardTest {
         assertEquals("1", logger.tag);
     }
 
+    @Test
+    public void runGuardProxyTester() {
+        Guard<Integer> guard = Guard.call(new Callable<Integer>() {
+            @Override
+            public Integer call() throws Exception {
+                return 0;
+            }
+        });
+
+        new ProxyTester<>(guard.proxy(), 1).run();
+    }
 }

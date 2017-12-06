@@ -1,6 +1,8 @@
 package com.chaining.interfaces;
 
 
+import com.chaining.Chain;
+
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Function;
 
@@ -21,3 +23,5 @@ public interface Monad<T> {
      */
     <R> R flatMap(@NonNull Function<T, R> flatMapper);
 }
+
+

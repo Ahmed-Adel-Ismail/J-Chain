@@ -4,8 +4,6 @@ package com.chaining;
 import com.chaining.exceptions.RuntimeExceptionConverter;
 import com.chaining.interfaces.DefaultIfEmpty;
 
-import java.util.concurrent.Callable;
-
 import io.reactivex.Maybe;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.BiConsumer;
@@ -18,11 +16,15 @@ import io.reactivex.functions.Function;
  * Created by Ahmed Adel Ismail on 11/6/2017.
  */
 public class Optional<T> implements
-        Callable<T>,
+        Internal<Optional<T>, T>,
         Function<Consumer<T>, Optional<T>>,
         DefaultIfEmpty<T> {
 
     private final Chain<T> chain;
+
+    Optional(T item, InternalConfiguration configuration) {
+        this.chain = new Chain<>(item, configuration);
+    }
 
     Optional(Chain<T> chain) {
         this.chain = chain;
@@ -88,7 +90,7 @@ public class Optional<T> implements
      * @param tag the tag of the logs
      * @return a {@link Logger} to handle logging operations
      */
-    public Logger<Optional<T>,T> log(Object tag) {
+    public Logger<Optional<T>, T> log(Object tag) {
         return new Logger<>(this, chain.configuration, tag);
     }
 
@@ -110,7 +112,22 @@ public class Optional<T> implements
     }
 
     @Override
-    public T call() {
-        return chain.item;
+    public Proxy<Optional<T>, T> proxy() {
+        return new Proxy<Optional<T>, T>() {
+            @Override
+            Optional<T> copy(T item, InternalConfiguration configuration) {
+                return new Optional<>(item, configuration);
+            }
+
+            @Override
+            InternalConfiguration getConfiguration() {
+                return chain.configuration;
+            }
+
+            @Override
+            T getItem() {
+                return chain.item;
+            }
+        };
     }
 }

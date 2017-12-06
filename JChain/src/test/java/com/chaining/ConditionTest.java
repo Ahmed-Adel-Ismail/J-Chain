@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 public class ConditionTest {
 
-    private final ChainConfigurationImpl chainConfiguration = ChainConfigurationImpl
+    private final InternalConfiguration chainConfiguration = InternalConfiguration
             .getInstance("ConditionTest");
 
     @Test
@@ -361,16 +361,16 @@ public class ConditionTest {
 
 
     @Test
-    public void thenMapWithValidConditionThenReturnAnOptionalContainingMappedValue(){
+    public void thenMapWithValidConditionThenReturnAnOptionalContainingMappedValue() {
 
-        TestClassTwo result = new Chain<>(new TestClass(),chainConfiguration)
+        TestClassTwo result = new Chain<>(new TestClass(), chainConfiguration)
                 .when(new Predicate<TestClass>() {
                     @Override
                     public boolean test(TestClass testClass) throws Exception {
                         return true;
                     }
                 })
-                .thenMap(new Function<TestClass,TestClassTwo>(){
+                .thenMap(new Function<TestClass, TestClassTwo>() {
 
                     @Override
                     public TestClassTwo apply(TestClass testClass) throws Exception {
@@ -380,22 +380,22 @@ public class ConditionTest {
                 .defaultIfEmpty(new TestClassTwo("2"))
                 .call();
 
-        assertEquals("1",result.text);
+        assertEquals("1", result.text);
 
 
     }
 
     @Test
-    public void thenMapWithInvalidConditionThenReturnAnOptionalContainingNull(){
+    public void thenMapWithInvalidConditionThenReturnAnOptionalContainingNull() {
 
-        TestClassTwo result = new Chain<>(new TestClass(),chainConfiguration)
+        TestClassTwo result = new Chain<>(new TestClass(), chainConfiguration)
                 .when(new Predicate<TestClass>() {
                     @Override
                     public boolean test(TestClass testClass) throws Exception {
                         return false;
                     }
                 })
-                .thenMap(new Function<TestClass,TestClassTwo>(){
+                .thenMap(new Function<TestClass, TestClassTwo>() {
 
                     @Override
                     public TestClassTwo apply(TestClass testClass) throws Exception {
@@ -405,7 +405,7 @@ public class ConditionTest {
                 .defaultIfEmpty(new TestClassTwo("2"))
                 .call();
 
-        assertEquals("2",result.text);
+        assertEquals("2", result.text);
 
 
     }
@@ -419,7 +419,7 @@ public class ConditionTest {
                         return true;
                     }
                 })
-                .thenMap(new Function<TestClass,TestClassTwo>(){
+                .thenMap(new Function<TestClass, TestClassTwo>() {
 
                     @Override
                     public TestClassTwo apply(TestClass testClass) throws Exception {
@@ -432,9 +432,9 @@ public class ConditionTest {
     /////////////////////
 
     @Test
-    public void thenToItemWithValidConditionThenReturnAnOptionalContainingItem(){
+    public void thenToItemWithValidConditionThenReturnAnOptionalContainingItem() {
 
-        TestClassTwo result = new Chain<>(new TestClass(),chainConfiguration)
+        TestClassTwo result = new Chain<>(new TestClass(), chainConfiguration)
                 .when(new Predicate<TestClass>() {
                     @Override
                     public boolean test(TestClass testClass) throws Exception {
@@ -445,15 +445,15 @@ public class ConditionTest {
                 .defaultIfEmpty(new TestClassTwo("2"))
                 .call();
 
-        assertEquals("1",result.text);
+        assertEquals("1", result.text);
 
 
     }
 
     @Test
-    public void thenToItemWithInvalidConditionThenReturnAnOptionalContainingNull(){
+    public void thenToItemWithInvalidConditionThenReturnAnOptionalContainingNull() {
 
-        TestClassTwo result = new Chain<>(new TestClass(),chainConfiguration)
+        TestClassTwo result = new Chain<>(new TestClass(), chainConfiguration)
                 .when(new Predicate<TestClass>() {
                     @Override
                     public boolean test(TestClass testClass) throws Exception {
@@ -464,22 +464,22 @@ public class ConditionTest {
                 .defaultIfEmpty(new TestClassTwo("2"))
                 .call();
 
-        assertEquals("2",result.text);
+        assertEquals("2", result.text);
 
 
     }
 
-  @Test
-    public void thenToCallableWithValidConditionThenReturnAnOptionalContainingMappedValue(){
+    @Test
+    public void thenToCallableWithValidConditionThenReturnAnOptionalContainingMappedValue() {
 
-        TestClassTwo result = new Chain<>(new TestClass(),chainConfiguration)
+        TestClassTwo result = new Chain<>(new TestClass(), chainConfiguration)
                 .when(new Predicate<TestClass>() {
                     @Override
                     public boolean test(TestClass testClass) throws Exception {
                         return true;
                     }
                 })
-                .thenTo(new Callable<TestClassTwo>(){
+                .thenTo(new Callable<TestClassTwo>() {
 
                     @Override
                     public TestClassTwo call() throws Exception {
@@ -489,22 +489,22 @@ public class ConditionTest {
                 .defaultIfEmpty(new TestClassTwo("2"))
                 .call();
 
-        assertEquals("1",result.text);
+        assertEquals("1", result.text);
 
 
     }
 
     @Test
-    public void thenToCallableWithInvalidConditionThenReturnAnOptionalContainingNull(){
+    public void thenToCallableWithInvalidConditionThenReturnAnOptionalContainingNull() {
 
-        TestClassTwo result = new Chain<>(new TestClass(),chainConfiguration)
+        TestClassTwo result = new Chain<>(new TestClass(), chainConfiguration)
                 .when(new Predicate<TestClass>() {
                     @Override
                     public boolean test(TestClass testClass) throws Exception {
                         return false;
                     }
                 })
-                .thenTo(new Callable<TestClassTwo>(){
+                .thenTo(new Callable<TestClassTwo>() {
 
                     @Override
                     public TestClassTwo call() throws Exception {
@@ -514,7 +514,7 @@ public class ConditionTest {
                 .defaultIfEmpty(new TestClassTwo("2"))
                 .call();
 
-        assertEquals("2",result.text);
+        assertEquals("2", result.text);
 
 
     }
@@ -528,7 +528,7 @@ public class ConditionTest {
                         return true;
                     }
                 })
-                .thenTo(new Callable<TestClassTwo>(){
+                .thenTo(new Callable<TestClassTwo>() {
 
                     @Override
                     public TestClassTwo call() throws Exception {
@@ -560,5 +560,31 @@ public class ConditionTest {
         });
         Logger<?, ?> logger = source.log("1");
         assertEquals("1", logger.tag);
+    }
+
+    @Test
+    public void runNormalConditionProxyTester() {
+        Condition<Integer> condition = Chain.let(0)
+                .when(new Predicate<Integer>() {
+                    @Override
+                    public boolean test(Integer integer) throws Exception {
+                        return true;
+                    }
+                });
+
+        new ProxyTester<>(condition.proxy(), 1).run();
+    }
+
+    @Test
+    public void runNegatedConditionProxyTester() {
+        Condition<Integer> condition = Chain.let(0)
+                .whenNot(new Predicate<Integer>() {
+                    @Override
+                    public boolean test(Integer integer) throws Exception {
+                        return true;
+                    }
+                });
+
+        new ProxyTester<>(condition.proxy(), 1).run();
     }
 }

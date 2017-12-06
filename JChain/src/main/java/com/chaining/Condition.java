@@ -19,7 +19,7 @@ import io.reactivex.functions.Predicate;
  * <p>
  * Created by Ahmed Adel Ismail on 10/29/2017.
  */
-public class Condition<T> implements Callable<T> {
+public class Condition<T> implements Internal<Condition<T>, T> {
 
     private final boolean negateExpression;
     private final Predicate<T> predicate;
@@ -180,12 +180,29 @@ public class Condition<T> implements Callable<T> {
      * @param tag the tag of the logs
      * @return a {@link Logger} to handle logging operations
      */
-    public Logger<Condition<T>,T> log(Object tag) {
+    public Logger<Condition<T>, T> log(Object tag) {
         return new Logger<>(this, chain.configuration, tag);
     }
 
+
     @Override
-    public T call() {
-        return chain.item;
+    public Proxy<Condition<T>, T> proxy() {
+        return new Proxy<Condition<T>, T>() {
+            @Override
+            T getItem() {
+                return chain.item;
+            }
+
+            @Override
+            InternalConfiguration getConfiguration() {
+                return chain.configuration;
+            }
+
+            @Override
+            Condition<T> copy(T item, InternalConfiguration configuration) {
+                Chain<T> chain = new Chain<>(item, configuration);
+                return new Condition<>(chain, predicate, negateExpression);
+            }
+        };
     }
 }

@@ -2,6 +2,7 @@ package com.chaining;
 
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 import io.reactivex.annotations.NonNull;
@@ -14,7 +15,7 @@ import static org.junit.Assert.assertTrue;
 
 public class CollectorTest {
 
-    private final ChainConfigurationImpl configuration = ChainConfigurationImpl
+    private final InternalConfiguration configuration = InternalConfiguration
             .getInstance("CollectorTest");
 
 
@@ -165,4 +166,13 @@ public class CollectorTest {
         assertEquals("1", logger.tag);
     }
 
+    @Test
+    public void runCollectorProxyTester(){
+        Collector<Integer> collector =
+                new Collector<>(InternalConfiguration.getInstance("runCollectorProxyTester"));
+
+        collector.and(1).and(2).and(3);
+
+        new ProxyTester<>(collector.proxy(), Arrays.asList(4,5,6)).run();
+    }
 }

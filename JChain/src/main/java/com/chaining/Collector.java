@@ -6,7 +6,6 @@ import com.chaining.interfaces.Monad;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import io.reactivex.Observable;
 import io.reactivex.annotations.NonNull;
@@ -20,15 +19,15 @@ import io.reactivex.functions.Function;
  * Created by Ahmed Adel Ismail on 11/13/2017.
  */
 public class Collector<T> implements
-        Callable<List<T>>,
+        Internal<Collector<T>, List<T>>,
         And<T>,
         Monad<List<T>> {
 
     final List<T> items = new LinkedList<>();
-    private final ChainConfigurationImpl chainConfiguration;
+    private final InternalConfiguration configuration;
 
-    Collector(ChainConfigurationImpl chainConfiguration) {
-        this.chainConfiguration = chainConfiguration;
+    Collector(InternalConfiguration configuration) {
+        this.configuration = configuration;
     }
 
 
@@ -46,7 +45,7 @@ public class Collector<T> implements
      * @return a {@link Chain} holding a List of items
      */
     public Chain<List<T>> toList() {
-        return new Chain<>(items, chainConfiguration);
+        return new Chain<>(items, configuration);
     }
 
     @Override
@@ -66,7 +65,7 @@ public class Collector<T> implements
      */
     public <R> Collector<R> map(Function<T, R> mapper) {
         if (items.isEmpty()) {
-            return new Collector<>(chainConfiguration);
+            return new Collector<>(configuration);
         } else {
             return invokeMap(mapper);
         }
@@ -74,7 +73,7 @@ public class Collector<T> implements
 
     @NonNull
     private <R> Collector<R> invokeMap(Function<T, R> mapper) {
-        Collector<R> collector = new Collector<>(chainConfiguration);
+        Collector<R> collector = new Collector<>(configuration);
         collector.items.addAll(mappedItems(mapper));
         return collector;
     }
@@ -95,7 +94,7 @@ public class Collector<T> implements
     public Chain<T> reduce(BiFunction<T, T, T> reducer) {
 
         if (items.isEmpty()) {
-            return new Chain<>(null, chainConfiguration);
+            return new Chain<>(null, configuration);
         }
 
         return Observable.fromIterable(items)
@@ -108,7 +107,7 @@ public class Collector<T> implements
         return new Function<T, Chain<T>>() {
             @Override
             public Chain<T> apply(T item) throws Exception {
-                return new Chain<>(item, chainConfiguration);
+                return new Chain<>(item, configuration);
             }
         };
     }
@@ -123,12 +122,29 @@ public class Collector<T> implements
      * @param tag the tag of the logs
      * @return a {@link Logger} to handle logging operations
      */
-    public Logger<Collector<T>,List<T>> log(Object tag) {
-        return new Logger<>(this, chainConfiguration, tag);
+    public Logger<Collector<T>, List<T>> log(Object tag) {
+        return new Logger<>(this, configuration, tag);
     }
 
     @Override
-    public List<T> call() {
-        return items;
+    public Proxy<Collector<T>, List<T>> proxy() {
+        return new Proxy<Collector<T>, List<T>>() {
+            @Override
+            List<T> getItem() {
+                return items;
+            }
+
+            @Override
+            InternalConfiguration getConfiguration() {
+                return configuration;
+            }
+
+            @Override
+            Collector<T> copy(List<T> items, InternalConfiguration configuration) {
+                Collector<T> collector = new Collector<>(configuration);
+                collector.items.addAll(items);
+                return collector;
+            }
+        };
     }
 }

@@ -122,7 +122,7 @@ public class ChainTest {
     @Test
     public void debugWhileChainConfigIsDebuggingThenInvokeDebug() {
 
-        ChainConfigurationImpl config = ChainConfigurationImpl
+        InternalConfiguration config = InternalConfiguration
                 .getInstance("debugWhileChainConfigIsDebuggingThenInvokeDebug");
         config.setDebugging(true);
 
@@ -142,7 +142,7 @@ public class ChainTest {
     @Test
     public void debugWhileChainConfigIsNotDebuggingThenDoNotInvokeDebug() {
 
-        ChainConfigurationImpl config = ChainConfigurationImpl
+        InternalConfiguration config = InternalConfiguration
                 .getInstance("debugWhileChainConfigIsNotDebuggingThenDoNotInvokeDebug");
         config.setDebugging(false);
 
@@ -294,8 +294,6 @@ public class ChainTest {
                         throw new UnsupportedOperationException();
                     }
                 });
-
-
     }
 
 
@@ -554,6 +552,14 @@ public class ChainTest {
         Chain<?> source = Chain.let(0);
         Logger<?, ?> logger = source.log("1");
         assertEquals("1", logger.tag);
+    }
+
+    @Test
+    public void runChainProxyTester(){
+        Chain<Integer> chain =
+                new Chain<>(0,InternalConfiguration.getInstance("runChainProxyTester"));
+
+        new ProxyTester<>(chain.proxy(),1).run();
     }
 
 }
