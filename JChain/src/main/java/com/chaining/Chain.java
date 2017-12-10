@@ -97,8 +97,9 @@ public class Chain<T> implements
      * @param <R>         the expected return type
      * @return a {@link Guard} with the new returned item
      */
-    public <R> Guard<R> guardMap(Function<T, R> guardMapper) {
-        return new Guard<>(toCallable(guardMapper, item), configuration);
+    public <R> Guard<Chain<R>, R> guardMap(Function<T, R> guardMapper) {
+        return new Guard<>(new Chain<R>(null, configuration).access(),
+                toCallable(guardMapper, item));
     }
 
     /**
@@ -107,8 +108,8 @@ public class Chain<T> implements
      * @param action the {@link Consumer} to be invoked
      * @return a {@link Guard} to handle safe execution
      */
-    public Guard<T> guard(Consumer<T> action) {
-        return new Guard<>(toCallable(invokeGuardFunction(), action), configuration);
+    public Guard<Chain<T>, T> guard(Consumer<T> action) {
+        return new Guard<>(access(), toCallable(invokeGuardFunction(), action));
     }
 
     private Function<Consumer<T>, T> invokeGuardFunction() {

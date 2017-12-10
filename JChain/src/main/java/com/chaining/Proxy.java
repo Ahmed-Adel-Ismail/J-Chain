@@ -54,4 +54,5 @@ abstract class Proxy<S, T> {
      * @return the item stored in the outer Object
      */
     abstract T getItem();
+
 }

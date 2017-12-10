@@ -18,19 +18,19 @@ import io.reactivex.functions.Function;
  * <p>
  * Created by Ahmed Adel Ismail on 11/1/2017.
  */
-public class Guard<T> implements Internal<Guard<T>, T> {
+public class Guard<S extends Internal<S, T>, T> implements Internal<Guard<S, T>, T> {
 
-    private final T item;
+    private final Proxy<S, T> proxy;
     private final Exception error;
     private final InternalConfiguration configuration;
 
-    private Guard(T item, Exception error, InternalConfiguration configuration) {
-        this.item = item;
+    private Guard(Proxy<S, T> proxy, Exception error) {
+        this.proxy = proxy;
         this.error = error;
-        this.configuration = configuration;
+        this.configuration = proxy.getConfiguration();
     }
 
-    Guard(Callable<T> callable, InternalConfiguration configuration) {
+    Guard(Proxy<S, T> proxy, Callable<T> callable) {
 
         T callResult = null;
         Exception callError = null;
@@ -41,61 +41,63 @@ public class Guard<T> implements Internal<Guard<T>, T> {
             callError = e;
         }
 
-        this.item = callResult;
+
+        this.configuration = proxy.getConfiguration();
+        this.proxy = proxy.copy(callResult).access();
         this.error = callError;
-        this.configuration = configuration;
 
     }
 
     /**
-     * execute the passed {@link java.util.concurrent.Callable} safely, which will handle any thrown {@link Exception}
+     * execute the passed {@link Callable} safely, which will handle any thrown {@link Exception}
      * internally, you will need to call {@link Guard#onErrorReturnItem(Object)} or
      * {@link Guard#onErrorReturn(Function)} to continue chaining the function calls,
      * or you can call {@link #onError(Consumer)} to finish the chain
      *
-     * @param callable a {@link java.util.concurrent.Callable} that may crash
+     * @param callable a {@link Callable} that may crash
      * @param <T>      the type of the returned item
      * @return a {@link Guard} to handle fallback scenarios
      */
-    public static <T> Guard<T> call(@NonNull Callable<T> callable) {
-        return new Guard<>(callable, InternalConfiguration.getInstance(null));
+    public static <T> Guard<Chain<T>, T> call(@NonNull Callable<T> callable) {
+        return new Guard<>(new Chain<T>(null, InternalConfiguration.getInstance(null)).access(),
+                callable);
     }
 
 
     /**
-     * provide a fallback item if the {@link java.util.concurrent.Callable} that was passed to this {@link Guard}
+     * provide a fallback item if the {@link Callable} that was passed to this {@link Guard}
      * crashed
      *
      * @param item the fallback item
      * @return a {@link Chain} to continue the flow
      */
-    public Chain<T> onErrorReturnItem(@NonNull T item) {
+    public S onErrorReturnItem(@NonNull T item) {
         if (error != null) {
-            return new Chain<>(item, configuration);
+            return proxy.copy(item);
         } else {
-            return new Chain<>(this.item, configuration);
+            return proxy.owner();
         }
     }
 
     /**
-     * provide a {@link Function} that will return a fallback item if the {@link java.util.concurrent.Callable} that was
+     * provide a {@link Function} that will return a fallback item if the {@link Callable} that was
      * passed to this {@link Guard} crashed
      *
      * @param function the function that will provide the fallback item
      * @return a {@link Chain} to continue the flow
      */
-    public Chain<T> onErrorReturn(@NonNull Function<Throwable, T> function) {
+    public S onErrorReturn(@NonNull Function<Throwable, T> function) {
         if (error != null) {
             return chainFromFunction(function);
         } else {
-            return new Chain<>(item, configuration);
+            return proxy.owner();
         }
     }
 
     @NonNull
-    private Chain<T> chainFromFunction(Function<Throwable, T> function) {
+    private S chainFromFunction(Function<Throwable, T> function) {
         try {
-            return new Chain<>(function.apply(error), configuration);
+            return proxy.copy(function.apply(error));
         } catch (Exception e) {
             throw new RuntimeExceptionConverter().apply(e);
         }
@@ -129,16 +131,16 @@ public class Guard<T> implements Internal<Guard<T>, T> {
      * @param tag the tag of the logs
      * @return a {@link Logger} to handle logging operations
      */
-    public Logger<Guard<T>, T> log(Object tag) {
+    public Logger<Guard<S, T>, T> log(Object tag) {
         return new Logger<>(this, configuration, tag);
     }
 
     @Override
-    public Proxy<Guard<T>, T> access() {
-        return new Proxy<Guard<T>, T>() {
+    public Proxy<Guard<S, T>, T> access() {
+        return new Proxy<Guard<S, T>, T>() {
             @Override
-            Guard<T> copy(T item, InternalConfiguration configuration) {
-                return new Guard<>(item, error, configuration);
+            Guard<S, T> copy(T item, InternalConfiguration configuration) {
+                return new Guard<>(proxy.copy(item).access(), error);
             }
 
             @Override
@@ -148,11 +150,11 @@ public class Guard<T> implements Internal<Guard<T>, T> {
 
             @Override
             T getItem() {
-                return item;
+                return proxy.getItem();
             }
 
             @Override
-            Guard<T> owner() {
+            Guard<S, T> owner() {
                 return Guard.this;
             }
         };

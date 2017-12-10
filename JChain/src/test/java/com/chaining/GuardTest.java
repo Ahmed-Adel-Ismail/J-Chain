@@ -181,7 +181,7 @@ public class GuardTest {
 
     @Test
     public void logWithSelfAsSourceThenReturnSelfAsSource() {
-        Guard<?> source = Chain.let(0).guard(new Consumer<Integer>() {
+        Guard<?,?> source = Chain.let(0).guard(new Consumer<Integer>() {
             @Override
             public void accept(Integer integer) throws Exception {
 
@@ -193,7 +193,7 @@ public class GuardTest {
 
     @Test
     public void logWithStringTagThenReturnLoggerWithThatTag() {
-        Guard<?> source = Chain.let(0).guard(new Consumer<Integer>() {
+        Guard<?,?> source = Chain.let(0).guard(new Consumer<Integer>() {
             @Override
             public void accept(Integer integer) throws Exception {
 
@@ -205,7 +205,7 @@ public class GuardTest {
 
     @Test
     public void runGuardProxyTester() {
-        Guard<Integer> guard = Guard.call(new Callable<Integer>() {
+        Guard<?,Integer> guard = Guard.call(new Callable<Integer>() {
             @Override
             public Integer call() throws Exception {
                 return 0;
