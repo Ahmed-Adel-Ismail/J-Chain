@@ -2,7 +2,6 @@ package com.chaining;
 
 
 import com.chaining.annotations.SideEffect;
-import com.chaining.exceptions.RuntimeExceptionConverter;
 
 import java.util.concurrent.Callable;
 
@@ -14,7 +13,7 @@ import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 
 /**
- * a function that will not execute the {@link Consumer} passed to the {@link #then(Consumer)}
+ * a invoke that will not execute the {@link Consumer} passed to the {@link #then(Consumer)}
  * until the {@link Predicate} passed to it returned {@code true}, else it will change nothing
  * <p>
  * Created by Ahmed Adel Ismail on 10/29/2017.
@@ -50,30 +49,21 @@ public class Condition<S extends Conditional<S, T>, T> implements Internal<Condi
      * {@code true}, or will return it with no updates
      */
     public S then(Consumer<T> action) {
-        try {
-            return invokeThenImplementation(action);
-        } catch (Exception e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
-
-    }
-
-    private S invokeThenImplementation(Consumer<T> action) throws Exception {
         if (isSourceChainUpdateAccepted())
-            return sourceProxy.owner().apply(action);
+            return Invoker.invoke(sourceProxy.owner(), action);
         else {
             return sourceProxy.owner();
         }
     }
 
-    private boolean isSourceChainUpdateAccepted() throws Exception {
+    private boolean isSourceChainUpdateAccepted() {
 
         T item = sourceProxy.getItem();
         if (item == null) {
             return false;
         }
 
-        boolean expression = predicate.test(item);
+        boolean expression = Invoker.invoke(predicate, item);
         if (negateExpression) {
             expression = !expression;
         }
@@ -90,17 +80,9 @@ public class Condition<S extends Conditional<S, T>, T> implements Internal<Condi
      */
     @SideEffect("usually this operation is done for side-effects")
     public S invoke(Action action) {
-        try {
-            return invokeThenImplementation(action);
-        } catch (Exception e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
-
-    }
-
-    private S invokeThenImplementation(Action action) throws Exception {
-        if (isSourceChainUpdateAccepted()) action.run();
+        if (isSourceChainUpdateAccepted()) Invoker.invoke(action);
         return sourceProxy.owner();
+
     }
 
     /**
@@ -112,16 +94,9 @@ public class Condition<S extends Conditional<S, T>, T> implements Internal<Condi
      * @return the {@link Optional} with the updated state based on the previous {@link Predicate}
      */
     public <R> Optional<R> thenMap(Function<T, R> mapper) {
-        try {
-            return mappedOptional(mapper);
-        } catch (Exception e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
-    }
-
-    private <R> Optional<R> mappedOptional(Function<T, R> mapper) throws Exception {
         if (isSourceChainUpdateAccepted()) {
-            return new Optional<>(mapper.apply(sourceProxy.getItem()), sourceProxy.getConfiguration());
+            return new Optional<>(Invoker.invoke(mapper, sourceProxy.getItem()),
+                    sourceProxy.getConfiguration());
         } else {
             return new Optional<>(null, sourceProxy.getConfiguration());
         }
@@ -135,21 +110,12 @@ public class Condition<S extends Conditional<S, T>, T> implements Internal<Condi
      * @return a new {@link Optional}
      */
     public <R> Optional<R> thenTo(@NonNull R item) {
-        try {
-            return toOptionalFromItem(item);
-        } catch (Throwable e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
-    }
-
-    private <R> Optional<R> toOptionalFromItem(R item) throws Exception {
         if (isSourceChainUpdateAccepted()) {
             return new Optional<>(item, sourceProxy.getConfiguration());
         } else {
             return new Optional<>(null, sourceProxy.getConfiguration());
         }
     }
-
 
     /**
      * convert to an {@link Optional} containing the result of the passed {@link java.util.concurrent.Callable}
@@ -160,26 +126,18 @@ public class Condition<S extends Conditional<S, T>, T> implements Internal<Condi
      * @return a new {@link Optional}
      */
     public <R> Optional<R> thenTo(@NonNull Callable<R> itemCallable) {
-        try {
-            return toOptionalFromCallable(itemCallable);
-        } catch (Exception e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
-    }
-
-
-    private <R> Optional<R> toOptionalFromCallable(Callable<R> callable) throws Exception {
         if (isSourceChainUpdateAccepted()) {
-            return new Optional<>(callable.call(), sourceProxy.getConfiguration());
+            return new Optional<>(Invoker.invoke(itemCallable), sourceProxy.getConfiguration());
         } else {
             return new Optional<>(null, sourceProxy.getConfiguration());
         }
     }
 
+
     /**
      * start logging operation with the passed tag, to see the logs active, you should
      * set {@link ChainConfiguration#setLogging(boolean)} to {@code true}, and you should
-     * set the logger function corresponding to the logger method that you will use, for instance
+     * set the logger invoke corresponding to the logger method that you will use, for instance
      * {@link ChainConfiguration#setInfoLogger(BiConsumer)} or
      * {@link ChainConfiguration#setErrorLogger(BiConsumer)}
      *

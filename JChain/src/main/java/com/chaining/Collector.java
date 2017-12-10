@@ -1,6 +1,5 @@
 package com.chaining;
 
-import com.chaining.exceptions.RuntimeExceptionConverter;
 import com.chaining.interfaces.And;
 import com.chaining.interfaces.Monad;
 
@@ -50,15 +49,11 @@ public class Collector<T> implements
 
     @Override
     public <R> R flatMap(@NonNull Function<List<T>, R> flatMapper) {
-        try {
-            return flatMapper.apply(items);
-        } catch (Throwable e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
+        return Invoker.invoke(flatMapper, items);
     }
 
     /**
-     * invoke a mapper function on every item in this {@link Collector}
+     * invoke a mapper invoke on every item in this {@link Collector}
      *
      * @param mapper the mapper {@link Function}
      * @return the new {@link Collector} with mapped items
@@ -88,8 +83,8 @@ public class Collector<T> implements
     /**
      * reduce all the items in this {@link Collector}
      *
-     * @param reducer the reducer function
-     * @return the result of the reducer function
+     * @param reducer the reducer invoke
+     * @return the result of the reducer invoke
      */
     public Chain<T> reduce(BiFunction<T, T, T> reducer) {
 
@@ -115,7 +110,7 @@ public class Collector<T> implements
     /**
      * start logging operation with the passed tag, to see the logs active, you should
      * set {@link ChainConfiguration#setLogging(boolean)} to {@code true}, and you should
-     * set the logger function corresponding to the logger method that you will use, for instance
+     * set the logger invoke corresponding to the logger method that you will use, for instance
      * {@link ChainConfiguration#setInfoLogger(BiConsumer)} or
      * {@link ChainConfiguration#setErrorLogger(BiConsumer)}
      *

@@ -2,7 +2,6 @@ package com.chaining;
 
 
 import com.chaining.annotations.SideEffect;
-import com.chaining.exceptions.RuntimeExceptionConverter;
 import com.chaining.interfaces.And;
 import com.chaining.interfaces.DefaultIfEmpty;
 import com.chaining.interfaces.Monad;
@@ -83,17 +82,13 @@ public class Chain<T> implements
      * @return a new {@link Chain}
      */
     public static <T> Chain<T> call(@NonNull Callable<T> callable) {
-        try {
-            return new Chain<>(callable.call(), InternalConfiguration.getInstance(null));
-        } catch (Exception e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
+        return new Chain<>(Invoker.invoke(callable), InternalConfiguration.getInstance(null));
     }
 
     /**
-     * invoke a mapper function that may crash
+     * invoke a mapper invoke that may crash
      *
-     * @param guardMapper the mapper function that may crash
+     * @param guardMapper the mapper invoke that may crash
      * @param <R>         the expected return type
      * @return a {@link Guard} with the new returned item
      */
@@ -210,11 +205,7 @@ public class Chain<T> implements
 
     @Override
     public <R> R flatMap(@NonNull Function<T, R> flatMapper) {
-        try {
-            return flatMapper.apply(item);
-        } catch (Throwable e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
+        return Invoker.invoke(flatMapper, item);
     }
 
     /**
@@ -224,11 +215,7 @@ public class Chain<T> implements
      * @return {@code this} instance for chaining
      */
     public Chain<T> apply(Consumer<T> action) {
-        try {
-            action.accept(item);
-        } catch (Exception e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
+        Invoker.invoke(action, item);
         return this;
     }
 
@@ -268,27 +255,19 @@ public class Chain<T> implements
      */
     @SideEffect("usually this operation is done for side-effects")
     public Chain<T> invoke(Action action) {
-        try {
-            action.run();
-        } catch (Exception e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
+        Invoker.invoke(action);
         return this;
     }
 
     /**
-     * a map function to convert the current Object in the Chain to another Object
+     * a map invoke to convert the current Object in the Chain to another Object
      *
      * @param mapper the mapper {@link Function}
      * @param <R>    the new type to be held in the Map
      * @return {@code this} instance for chaining
      */
     public <R> Chain<R> map(@NonNull Function<T, R> mapper) {
-        try {
-            return new Chain<>(mapper.apply(item), configuration);
-        } catch (Throwable e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
+        return new Chain<>(Invoker.invoke(mapper, item), configuration);
     }
 
     /**
@@ -309,11 +288,7 @@ public class Chain<T> implements
      * @return a new {@link Chain}
      */
     public <R> Chain<R> to(@NonNull Callable<R> itemCallable) {
-        try {
-            return new Chain<>(itemCallable.call(), InternalConfiguration.getInstance(null));
-        } catch (Exception e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
+        return new Chain<>(Invoker.invoke(itemCallable), InternalConfiguration.getInstance(null));
     }
 
     /**
@@ -339,11 +314,7 @@ public class Chain<T> implements
      */
     public Chain<T> debug(Consumer<T> action) {
         if (configuration.isDebugging()) {
-            try {
-                action.accept(item);
-            } catch (Exception e) {
-                throw new RuntimeExceptionConverter().apply(e);
-            }
+            Invoker.invoke(action, item);
         }
         return this;
     }
@@ -369,19 +340,15 @@ public class Chain<T> implements
     }
 
     /**
-     * pair the current item with another item which is the result of the passed function
+     * pair the current item with another item which is the result of the passed invoke
      *
-     * @param pairedItemMapper a function that it's result will be used to be put in a {@link Pair}
+     * @param pairedItemMapper a invoke that it's result will be used to be put in a {@link Pair}
      * @param <R>              the other item type
      * @return a {@link Chain} that holds a {@link Pair}, holding the current item as it's
-     * first value, and the function result as a second value
+     * first value, and the invoke result as a second value
      */
     public <R> Chain<Pair<T, R>> pair(Function<T, R> pairedItemMapper) {
-        try {
-            return new Chain<>(Pair.with(item, pairedItemMapper.apply(item)), configuration);
-        } catch (Exception e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
+        return new Chain<>(Pair.with(item, Invoker.invoke(pairedItemMapper, item)), configuration);
     }
 
     /**
@@ -423,7 +390,7 @@ public class Chain<T> implements
     /**
      * start logging operation with the passed tag, to see the logs active, you should
      * set {@link ChainConfiguration#setLogging(boolean)} to {@code true}, and you should
-     * set the logger function corresponding to the logger method that you will use, for instance
+     * set the logger invoke corresponding to the logger method that you will use, for instance
      * {@link ChainConfiguration#setInfoLogger(BiConsumer)} or
      * {@link ChainConfiguration#setErrorLogger(BiConsumer)}
      *

@@ -1,7 +1,5 @@
 package com.chaining;
 
-import com.chaining.exceptions.RuntimeExceptionConverter;
-
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Function;
 
@@ -12,7 +10,7 @@ import io.reactivex.functions.Function;
  * <p>
  * Created by Ahmed Adel Ismail on 12/4/2017.
  */
-public class Logger<S extends Internal<S,T>, T> {
+public class Logger<S extends Internal<S, T>, T> {
 
     final S source;
     final Object tag;
@@ -28,22 +26,19 @@ public class Logger<S extends Internal<S,T>, T> {
     /**
      * build a message from the currently stored item
      *
-     * @param messageComposer the message composer function
+     * @param messageComposer the message composer invoke
      * @return a {@link MessageLogger} to handle logging the message
      */
     public MessageLogger<S, T> message(Function<T, Object> messageComposer) {
-        try {
-            return new MessageLogger<>(this, messageComposer.apply(source.access().getItem()));
-        } catch (Exception e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
+        return new MessageLogger<>(this,
+                Invoker.invoke(messageComposer, source.access().getItem()));
     }
 
     /**
      * log an info message, to activate this operation, you must set
      * {@link ChainConfiguration#setLogging(boolean)} to
      * {@code true} and set {@link ChainConfiguration#setInfoLogger(BiConsumer)} with the logger
-     * function that will be invoked
+     * invoke that will be invoked
      *
      * @param message the message to be logged
      * @return the starter of this {@link Logger}
@@ -56,18 +51,14 @@ public class Logger<S extends Internal<S,T>, T> {
     }
 
     private <V> void guardAccept(BiConsumer<Object, V> biConsumer, V message) {
-        try {
-            biConsumer.accept(tag, message);
-        } catch (Exception e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
+        Invoker.invoke(biConsumer, tag, message);
     }
 
     /**
      * log an error message, to activate this operation, you must set
      * {@link ChainConfiguration#setLogging(boolean)} to
      * {@code true} and set {@link ChainConfiguration#setErrorLogger(BiConsumer)} with the logger
-     * function that will be invoked
+     * invoke that will be invoked
      *
      * @param message the message to be logged
      * @return the starter of this {@link Logger}
@@ -83,7 +74,7 @@ public class Logger<S extends Internal<S,T>, T> {
      * log an exception, to activate this operation, you must set
      * {@link ChainConfiguration#setLogging(boolean)} to
      * {@code true} and set {@link ChainConfiguration#setExceptionLogger(BiConsumer)} with the logger
-     * function that will be invoked
+     * invoke that will be invoked
      *
      * @param exception the exception to be logged
      * @return the starter of this {@link Logger}

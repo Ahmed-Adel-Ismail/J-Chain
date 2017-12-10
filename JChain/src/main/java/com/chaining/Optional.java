@@ -1,7 +1,6 @@
 package com.chaining;
 
 
-import com.chaining.exceptions.RuntimeExceptionConverter;
 import com.chaining.interfaces.DefaultIfEmpty;
 
 import io.reactivex.Maybe;
@@ -42,11 +41,7 @@ public class Optional<T> implements
      */
     public Optional<T> apply(Consumer<T> action) {
         if (chain.item != null) {
-            try {
-                action.accept(chain.item);
-            } catch (Exception e) {
-                throw new RuntimeExceptionConverter().apply(e);
-            }
+            Invoker.invoke(action, chain.item);
         }
         return this;
     }
@@ -60,16 +55,8 @@ public class Optional<T> implements
      * @return {@code this} instance for chaining
      */
     public <R> Optional<R> map(Function<T, R> mapper) {
-        try {
-            return mappedOptional(mapper);
-        } catch (Exception e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
-    }
-
-    private <R> Optional<R> mappedOptional(Function<T, R> mapper) throws Exception {
         if (chain.item != null) {
-            return new Optional<>(mapper.apply(chain.item), chain.configuration);
+            return new Optional<>(Invoker.invoke(mapper, chain.item), chain.configuration);
         } else {
             return new Optional<>(null, chain.configuration);
         }
@@ -78,7 +65,7 @@ public class Optional<T> implements
     /**
      * start logging operation with the passed tag, to see the logs active, you should
      * set {@link ChainConfiguration#setLogging(boolean)} to {@code true}, and you should
-     * set the logger function corresponding to the logger method that you will use, for instance
+     * set the logger invoke corresponding to the logger method that you will use, for instance
      * {@link ChainConfiguration#setInfoLogger(BiConsumer)} or
      * {@link ChainConfiguration#setErrorLogger(BiConsumer)}
      *
@@ -97,11 +84,7 @@ public class Optional<T> implements
      */
     public Optional<T> debug(Consumer<T> action) {
         if (chain.configuration.isDebugging() && chain.item != null) {
-            try {
-                action.accept(chain.item);
-            } catch (Exception e) {
-                throw new RuntimeExceptionConverter().apply(e);
-            }
+            Invoker.invoke(action, chain.item);
         }
         return this;
     }

@@ -40,15 +40,6 @@ abstract class Proxy<S, T> {
     abstract InternalConfiguration getConfiguration();
 
     /**
-     * copy the exact Outer Object
-     *
-     * @return a new instance of the Outer Object
-     */
-    S copy() {
-        return copy(getItem(), getConfiguration());
-    }
-
-    /**
      * get the current item in the current Object
      *
      * @return the item stored in the outer Object

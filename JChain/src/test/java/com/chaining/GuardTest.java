@@ -181,7 +181,7 @@ public class GuardTest {
 
     @Test
     public void logWithSelfAsSourceThenReturnSelfAsSource() {
-        Guard<?,?> source = Chain.let(0).guard(new Consumer<Integer>() {
+        Guard<?, ?> source = Chain.let(0).guard(new Consumer<Integer>() {
             @Override
             public void accept(Integer integer) throws Exception {
 
@@ -193,7 +193,7 @@ public class GuardTest {
 
     @Test
     public void logWithStringTagThenReturnLoggerWithThatTag() {
-        Guard<?,?> source = Chain.let(0).guard(new Consumer<Integer>() {
+        Guard<?, ?> source = Chain.let(0).guard(new Consumer<Integer>() {
             @Override
             public void accept(Integer integer) throws Exception {
 
@@ -204,8 +204,101 @@ public class GuardTest {
     }
 
     @Test
+    public void onErrorMapWithErrorThenReturnAnOptionalWithNewItem() {
+        String result = Chain.let(0)
+                .guard(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                })
+                .onErrorMap(new Function<Throwable, String>() {
+                    @Override
+                    public String apply(Throwable throwable) throws Exception {
+                        return "!";
+                    }
+                })
+                .defaultIfEmpty("")
+                .call();
+        assertEquals("!", result);
+    }
+
+    @Test
+    public void onErrorMapWithNoErrorThenReturnEmptyOptional() {
+        String result = Chain.let(0)
+                .guard(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        // do nothing
+                    }
+                })
+                .onErrorMap(new Function<Throwable, String>() {
+                    @Override
+                    public String apply(Throwable throwable) throws Exception {
+                        return "!";
+                    }
+                })
+                .defaultIfEmpty("")
+                .call();
+
+        assertEquals("", result);
+    }
+
+    @Test
+    public void onErrorMapItemWithErrorThenReturnAnOptionalWithNewItem() {
+        String result = Chain.let(0)
+                .guard(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                })
+                .onErrorMapItem("!")
+                .defaultIfEmpty("")
+                .call();
+
+        assertEquals("!", result);
+    }
+
+
+
+    @Test
+    public void onErrorMapItemWithNoErrorThenReturnEmptyOptional() {
+        String result = Chain.let(0)
+                .guard(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        // do nothing
+                    }
+                })
+                .onErrorMapItem("!")
+                .defaultIfEmpty("")
+                .call();
+
+        assertEquals("", result);
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void onErrorMapWithErrorAndCrashInMapperFunctionThenThrowException() {
+        Chain.let(0)
+                .guard(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                })
+                .onErrorMap(new Function<Throwable, String>() {
+                    @Override
+                    public String apply(Throwable throwable) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                });
+
+    }
+
+    @Test
     public void runGuardProxyTester() {
-        Guard<?,Integer> guard = Guard.call(new Callable<Integer>() {
+        Guard<?, Integer> guard = Guard.call(new Callable<Integer>() {
             @Override
             public Integer call() throws Exception {
                 return 0;

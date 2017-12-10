@@ -1,8 +1,6 @@
 package com.chaining;
 
 
-import com.chaining.exceptions.RuntimeExceptionConverter;
-
 import java.util.concurrent.Callable;
 
 import io.reactivex.annotations.NonNull;
@@ -22,12 +20,10 @@ public class Guard<S extends Internal<S, T>, T> implements Internal<Guard<S, T>,
 
     private final Proxy<S, T> proxy;
     private final Exception error;
-    private final InternalConfiguration configuration;
 
     private Guard(Proxy<S, T> proxy, Exception error) {
         this.proxy = proxy;
         this.error = error;
-        this.configuration = proxy.getConfiguration();
     }
 
     Guard(Proxy<S, T> proxy, Callable<T> callable) {
@@ -41,8 +37,6 @@ public class Guard<S extends Internal<S, T>, T> implements Internal<Guard<S, T>,
             callError = e;
         }
 
-
-        this.configuration = proxy.getConfiguration();
         this.proxy = proxy.copy(callResult).access();
         this.error = callError;
 
@@ -51,7 +45,7 @@ public class Guard<S extends Internal<S, T>, T> implements Internal<Guard<S, T>,
     /**
      * execute the passed {@link Callable} safely, which will handle any thrown {@link Exception}
      * internally, you will need to call {@link Guard#onErrorReturnItem(Object)} or
-     * {@link Guard#onErrorReturn(Function)} to continue chaining the function calls,
+     * {@link Guard#onErrorReturn(Function)} to continue chaining the invoke calls,
      * or you can call {@link #onError(Consumer)} to finish the chain
      *
      * @param callable a {@link Callable} that may crash
@@ -83,29 +77,20 @@ public class Guard<S extends Internal<S, T>, T> implements Internal<Guard<S, T>,
      * provide a {@link Function} that will return a fallback item if the {@link Callable} that was
      * passed to this {@link Guard} crashed
      *
-     * @param function the function that will provide the fallback item
+     * @param function the invoke that will provide the fallback item
      * @return a {@link Chain} to continue the flow
      */
     public S onErrorReturn(@NonNull Function<Throwable, T> function) {
         if (error != null) {
-            return chainFromFunction(function);
+            return proxy.copy(Invoker.invoke(function, error));
         } else {
             return proxy.owner();
         }
     }
 
-    @NonNull
-    private S chainFromFunction(Function<Throwable, T> function) {
-        try {
-            return proxy.copy(function.apply(error));
-        } catch (Exception e) {
-            throw new RuntimeExceptionConverter().apply(e);
-        }
-    }
-
     /**
      * provide a {@link Consumer} to be invoked when an {@link Exception} is thrown, this
-     * function will end the current functions chain, if you need to continue the chain with
+     * invoke will end the current functions chain, if you need to continue the chain with
      * another operations, you can use {@link #onErrorReturn(Function)} or
      * {@link #onErrorReturnItem(Object)}
      *
@@ -113,18 +98,14 @@ public class Guard<S extends Internal<S, T>, T> implements Internal<Guard<S, T>,
      */
     public void onError(Consumer<Exception> consumer) {
         if (error != null) {
-            try {
-                consumer.accept(error);
-            } catch (Exception e) {
-                throw new RuntimeExceptionConverter().apply(e);
-            }
+            Invoker.invoke(consumer, error);
         }
     }
 
     /**
      * start logging operation with the passed tag, to see the logs active, you should
      * set {@link ChainConfiguration#setLogging(boolean)} to {@code true}, and you should
-     * set the logger function corresponding to the logger method that you will use, for instance
+     * set the logger invoke corresponding to the logger method that you will use, for instance
      * {@link ChainConfiguration#setInfoLogger(BiConsumer)} or
      * {@link ChainConfiguration#setErrorLogger(BiConsumer)}
      *
@@ -132,7 +113,23 @@ public class Guard<S extends Internal<S, T>, T> implements Internal<Guard<S, T>,
      * @return a {@link Logger} to handle logging operations
      */
     public Logger<Guard<S, T>, T> log(Object tag) {
-        return new Logger<>(this, configuration, tag);
+        return new Logger<>(this, proxy.getConfiguration(), tag);
+    }
+
+    /**
+     * map the item in the stream to another item if an error occurred
+     *
+     * @param mappedItem the new mapped item
+     * @param <R>        the new item type
+     * @return an {@link Optional} that holds the mapped item on error, or empty {@link Optional}
+     * if no error occurred
+     */
+    public <R> Optional<R> onErrorMapItem(R mappedItem) {
+        if (error != null) {
+            return new Optional<>(mappedItem, proxy.getConfiguration());
+        } else {
+            return new Optional<>(null, proxy.getConfiguration());
+        }
     }
 
     @Override
@@ -145,7 +142,7 @@ public class Guard<S extends Internal<S, T>, T> implements Internal<Guard<S, T>,
 
             @Override
             InternalConfiguration getConfiguration() {
-                return configuration;
+                return proxy.getConfiguration();
             }
 
             @Override
@@ -158,5 +155,14 @@ public class Guard<S extends Internal<S, T>, T> implements Internal<Guard<S, T>,
                 return Guard.this;
             }
         };
+    }
+
+
+    public <R> Optional<R> onErrorMap(Function<Throwable, R> mapperFunction) {
+        if (error != null) {
+            return new Optional<>(Invoker.invoke(mapperFunction, error), proxy.getConfiguration());
+        } else {
+            return new Optional<>(null, proxy.getConfiguration());
+        }
     }
 }

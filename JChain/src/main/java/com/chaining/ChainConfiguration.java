@@ -32,27 +32,27 @@ public class ChainConfiguration {
     }
 
     /**
-     * set the logging function that will be executed when executing an info log
+     * set the logging invoke that will be executed when executing an info log
      *
-     * @param infoLogger the info logger function
+     * @param infoLogger the info logger invoke
      */
     public static void setInfoLogger(BiConsumer<Object, Object> infoLogger) {
         implementation.setInfoLogger(infoLogger);
     }
 
     /**
-     * set the logging function that will be executed when executing an error log
+     * set the logging invoke that will be executed when executing an error log
      *
-     * @param errorLogger the error logger function
+     * @param errorLogger the error logger invoke
      */
     public static void setErrorLogger(BiConsumer<Object, Object> errorLogger) {
         implementation.setErrorLogger(errorLogger);
     }
 
     /**
-     * set the logging function that will be executed when executing an exception log
+     * set the logging invoke that will be executed when executing an exception log
      *
-     * @param exceptionLogger the exception logger function
+     * @param exceptionLogger the exception logger invoke
      */
     public static void setExceptionLogger(BiConsumer<Object, Throwable> exceptionLogger) {
         implementation.setExceptionLogger(exceptionLogger);

@@ -27,7 +27,6 @@ public class ProxyTester<S extends Internal<S, T>, T> implements Action {
 
     @Override
     public void run() {
-        assertTrue("copyWithNoParameters", copyWithNoParameters());
         assertTrue("copyWithNewItem", copyWithNewItem());
         assertTrue("copyWithNewItemAndConfiguration", copyWithNewItemAndConfiguration());
         assertTrue("owner", owner());
@@ -35,14 +34,6 @@ public class ProxyTester<S extends Internal<S, T>, T> implements Action {
 
     private boolean owner() {
         return target.owner() == owner;
-    }
-
-    private boolean copyWithNoParameters() {
-        if (target.copy().access().getItem() == null) {
-            return null == item;
-        } else {
-            return target.copy().access().getItem().equals(item);
-        }
     }
 
     private boolean copyWithNewItem() {
