@@ -555,6 +555,55 @@ public class ChainTest {
     }
 
     @Test
+    public void whenInWithValidCollectionThenReturnValidCondition(){
+
+        boolean result = Chain.let(0)
+                .whenIn(Arrays.asList(0,1,2,3,4))
+                .thenTo(true)
+                .defaultIfEmpty(false)
+                .call();
+
+        assertTrue(result);
+    }
+
+
+    @Test
+    public void whenInWithInValidCollectionThenReturnInValidCondition(){
+
+        boolean result = Chain.let(0)
+                .whenIn(Arrays.asList(1,2,3,4))
+                .thenTo(true)
+                .defaultIfEmpty(false)
+                .call();
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void whenNotInWithValidCollectionThenReturnInValidCondition(){
+
+        boolean result = Chain.let(0)
+                .whenNotIn(Arrays.asList(0,1,2,3,4))
+                .thenTo(true)
+                .defaultIfEmpty(false)
+                .call();
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void whenNotInWithInValidCollectionThenReturnValidCondition(){
+
+        boolean result = Chain.let(0)
+                .whenNotIn(Arrays.asList(1,2,3,4))
+                .thenTo(true)
+                .defaultIfEmpty(false)
+                .call();
+
+        assertTrue(result);
+    }
+
+    @Test
     public void runChainProxyTester(){
         Chain<Integer> chain =
                 new Chain<>(0,InternalConfiguration.getInstance("runChainProxyTester"));

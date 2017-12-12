@@ -31,13 +31,13 @@ public class Condition<S extends Conditional<S, T>, T> implements Internal<Condi
 
     }
 
-    static <S extends Conditional<S, T>, T> Condition<S, T>
-    createNormal(S source, Predicate<T> predicate) {
+    static <S extends Conditional<S, T>, T> Condition<S, T> createNormal(
+            S source, Predicate<T> predicate) {
         return new Condition<>(source, predicate, false);
     }
 
-    static <S extends Conditional<S, T>, T> Condition<S, T>
-    createNegated(S source, Predicate<T> predicate) {
+    static <S extends Conditional<S, T>, T> Condition<S, T> createNegated(
+            S source, Predicate<T> predicate) {
         return new Condition<>(source, predicate, true);
     }
 

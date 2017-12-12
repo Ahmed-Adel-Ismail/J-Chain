@@ -2,9 +2,12 @@ package com.chaining;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -177,16 +180,174 @@ public class OptionalTest {
     }
 
     @Test
+    public void whenWithNonNullValueThenReturnOperatingCondition() {
+
+        boolean result = Chain.optional(1)
+                .when(new Predicate<Integer>() {
+                    @Override
+                    public boolean test(Integer integer) throws Exception {
+                        return true;
+                    }
+                })
+                .thenMap(new Function<Integer, Boolean>() {
+                    @Override
+                    public Boolean apply(Integer integer) throws Exception {
+                        return true;
+                    }
+                })
+                .defaultIfEmpty(false)
+                .call();
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void whenWithNullValueThenReturnNonOperatingCondition() {
+
+        boolean result = Chain.optional((Integer) null)
+                .when(new Predicate<Integer>() {
+                    @Override
+                    public boolean test(Integer integer) throws Exception {
+                        return true;
+                    }
+                })
+                .thenMap(new Function<Integer, Boolean>() {
+                    @Override
+                    public Boolean apply(Integer integer) throws Exception {
+                        return false;
+                    }
+                })
+                .defaultIfEmpty(true)
+                .call();
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void whenNotWithNonNullValueThenReturnOperatingCondition() {
+
+        boolean result = Chain.optional(1)
+                .whenNot(new Predicate<Integer>() {
+                    @Override
+                    public boolean test(Integer integer) throws Exception {
+                        return false;
+                    }
+                })
+                .thenMap(new Function<Integer, Boolean>() {
+                    @Override
+                    public Boolean apply(Integer integer) throws Exception {
+                        return true;
+                    }
+                })
+                .defaultIfEmpty(false)
+                .call();
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void whenNotWithNullValueThenReturnNonOperatingCondition() {
+
+        boolean result = Chain.optional((Integer) null)
+                .whenNot(new Predicate<Integer>() {
+                    @Override
+                    public boolean test(Integer integer) throws Exception {
+                        return false;
+                    }
+                })
+                .thenMap(new Function<Integer, Boolean>() {
+                    @Override
+                    public Boolean apply(Integer integer) throws Exception {
+                        return false;
+                    }
+                })
+                .defaultIfEmpty(true)
+                .call();
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void whenInWithValidCollectionThenReturnValidCondition() {
+
+        boolean result = Chain.optional(0)
+                .whenIn(Arrays.asList(0, 1, 2, 3, 4))
+                .thenTo(true)
+                .defaultIfEmpty(false)
+                .call();
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void whenInWithNullItemAndValidCollectionThenReturnInValidCondition() {
+        boolean result = Chain.optional((Integer) null)
+                .whenIn(Arrays.asList(0, null, 2, null, 4))
+                .thenTo(true)
+                .defaultIfEmpty(false)
+                .call();
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void whenInWithNullItemAndInValidCollectionThenReturnInValidCondition() {
+        boolean result = Chain.optional((Integer) null)
+                .whenIn(Arrays.asList(0, 1, 2, 3, 4))
+                .thenTo(true)
+                .defaultIfEmpty(false)
+                .call();
+
+        assertFalse(result);
+    }
+
+
+    @Test
+    public void whenInWithInValidCollectionThenReturnInValidCondition() {
+        boolean result = Chain.optional(0)
+                .whenIn(Arrays.asList(1, 2, 3, 4))
+                .thenTo(true)
+                .defaultIfEmpty(false)
+                .call();
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void whenNotInWithValidCollectionThenReturnInValidCondition() {
+
+        boolean result = Chain.optional(0)
+                .whenNotIn(Arrays.asList(0, 1, 2, 3, 4))
+                .thenTo(true)
+                .defaultIfEmpty(false)
+                .call();
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void whenNotInWithInValidCollectionThenReturnValidCondition() {
+
+        boolean result = Chain.optional(0)
+                .whenNotIn(Arrays.asList(1, 2, 3, 4))
+                .thenTo(true)
+                .defaultIfEmpty(false)
+                .call();
+
+        assertTrue(result);
+    }
+
+    @Test
     public void runOptionalProxyTesterWithNonNullValue() {
-        Optional<Integer> optional = new Optional<>(0,InternalConfiguration
-                        .getInstance("runOptionalProxyTesterWithNonNullValue"));
+        Optional<Integer> optional = new Optional<>(0, InternalConfiguration
+                .getInstance("runOptionalProxyTesterWithNonNullValue"));
 
         new ProxyTester<>(optional, 1).run();
     }
 
     @Test
     public void runOptionalProxyTesterWithNullValue() {
-        Optional<Integer> optional = new Optional<>(null,InternalConfiguration
+        Optional<Integer> optional = new Optional<>(null, InternalConfiguration
                 .getInstance("runOptionalProxyTesterWithNullValue"));
 
         new ProxyTester<>(optional, 1).run();

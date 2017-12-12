@@ -97,6 +97,32 @@ public class Chain<T> implements
                 toCallable(guardMapper, item));
     }
 
+    @Override
+    public Proxy<Chain<T>, T> access() {
+        return new Proxy<Chain<T>, T>() {
+
+            @Override
+            T getItem() {
+                return item;
+            }
+
+            @Override
+            InternalConfiguration getConfiguration() {
+                return configuration;
+            }
+
+            @Override
+            Chain<T> copy(T item, InternalConfiguration configuration) {
+                return new Chain<>(item, configuration);
+            }
+
+            @Override
+            Chain<T> owner() {
+                return Chain.this;
+            }
+        };
+    }
+
     /**
      * invoke an action on the root item that may throw an {@link Exception}
      *
@@ -135,7 +161,6 @@ public class Chain<T> implements
         return Condition.createNormal(this, predicate);
     }
 
-
     /**
      * pass a {@link Predicate} that if it returned {@code false}, it's
      * {@link Condition#then(Consumer)} will update the current Object, else nothing
@@ -159,9 +184,11 @@ public class Chain<T> implements
      * @return a new {@link Chain} holding a {@link Pair}, where {@link Pair#getValue0()} will
      * return the original Object, and {@link Pair#getValue1()} will return a boolean indicating
      * weather the the Object was found in the passed {@link Collection} or not
+     * @deprecated use {@link #whenIn(Collection)} instead
      */
+    @Deprecated
     public Chain<Pair<T, Boolean>> in(Collection<T> collection) {
-        return in(collection, isEqual());
+        return in(collection, new IsEqualComparator<T>());
     }
 
     /**
@@ -176,31 +203,72 @@ public class Chain<T> implements
      * @return a new {@link Chain} holding a {@link Pair}, where {@link Pair#getValue0()} will
      * return the original Object, and {@link Pair#getValue1()} will return a boolean indicating
      * weather the the Object was found in the passed {@link Collection} or not
+     * @deprecated use {@link #whenIn(Collection, BiPredicate)} instead
      */
+    @Deprecated
     public Chain<Pair<T, Boolean>> in(Collection<T> collection, BiPredicate<T, T> comparator) {
-        boolean inCollection = false;
-        if (collection != null && !collection.isEmpty()) {
-            inCollection = isObjectInCollection(collection, comparator);
-        }
+        boolean inCollection = new InOperator<>(collection, comparator, configuration).test(item);
         return new Chain<>(Pair.with(item, inCollection), configuration);
     }
 
-    private BiPredicate<T, T> isEqual() {
-        return new BiPredicate<T, T>() {
-            @Override
-            public boolean test(T t, T o) throws Exception {
-                return t.equals(o);
-            }
-        };
+    /**
+     * check if the current Object in the {@link Chain} is available in the passed
+     * {@link Collection}
+     *
+     * @param collection the {@link Collection} that holds the items
+     * @return a {@link Condition} that will execute it's {@link Condition#then(Consumer)} or
+     * similar methods if the item is available in the passed {@link Collection}
+     */
+    public Condition<Chain<T>, T> whenIn(Collection<T> collection) {
+        return whenIn(collection, new IsEqualComparator<T>());
     }
 
-    private Boolean isObjectInCollection(final Collection<T> collection,
-                                         final BiPredicate<T, T> comparator) {
-        return new Chain<>(collection, configuration)
-                .apply(removeNulls())
-                .flatMap(toObservableFromIterable())
-                .any(hasComparatorTestPassed(comparator))
-                .blockingGet();
+    /**
+     * check if the current Object in the {@link Chain} is available in the passed
+     * {@link Collection}
+     *
+     * @param collection the {@link Collection} that holds the items
+     * @param comparator the {@link BiPredicate} that will be invoked over every item, the stored
+     *                   Object will be passed as it's first parameter, and the item in the
+     *                   {@link Collection} will be passed as the second parameter, if the returned
+     *                   value is {@code true}, this means that both items are equal, if
+     *                   the returned item is {@code false}, they do not match
+     * @return a {@link Condition} that will execute it's {@link Condition#then(Consumer)} or
+     * similar methods if the item is available in the passed {@link Collection}
+     */
+    public Condition<Chain<T>, T> whenIn(Collection<T> collection, BiPredicate<T, T> comparator) {
+        return Condition.createNormal(this,
+                new InOperator<>(collection, comparator, configuration));
+    }
+
+    /**
+     * check if the current Object in the {@link Chain} is NOT available in the passed
+     * {@link Collection}
+     *
+     * @param collection the {@link Collection} that holds the items
+     * @return a {@link Condition} that will execute it's {@link Condition#then(Consumer)} or
+     * similar methods if the item is NOT available in the passed {@link Collection}
+     */
+    public Condition<Chain<T>, T> whenNotIn(Collection<T> collection) {
+        return whenNotIn(collection, new IsEqualComparator<T>());
+    }
+
+    /**
+     * check if the current Object in the {@link Chain} is NOT available in the passed
+     * {@link Collection}
+     *
+     * @param collection the {@link Collection} that holds the items
+     * @param comparator the {@link BiPredicate} that will be invoked over every item, the stored
+     *                   Object will be passed as it's first parameter, and the item in the
+     *                   {@link Collection} will be passed as the second parameter, if the returned
+     *                   value is {@code true}, this means that both items are equal, if
+     *                   the returned item is {@code false}, they do not match
+     * @return a {@link Condition} that will execute it's {@link Condition#then(Consumer)} or
+     * similar methods if the item is NOT available in the passed {@link Collection}
+     */
+    public Condition<Chain<T>, T> whenNotIn(Collection<T> collection, BiPredicate<T, T> comparator) {
+        return Condition.createNegated(this,
+                new InOperator<>(collection, comparator, configuration));
     }
 
     @Override
@@ -217,33 +285,6 @@ public class Chain<T> implements
     public Chain<T> apply(Consumer<T> action) {
         Invoker.invoke(action, item);
         return this;
-    }
-
-    private Consumer<Collection<T>> removeNulls() {
-        return new Consumer<Collection<T>>() {
-            @Override
-            public void accept(Collection<T> items) throws Exception {
-                items.remove(null);
-            }
-        };
-    }
-
-    private Function<Collection<T>, Observable<T>> toObservableFromIterable() {
-        return new Function<Collection<T>, Observable<T>>() {
-            @Override
-            public Observable<T> apply(Collection<T> source) {
-                return Observable.fromIterable(source);
-            }
-        };
-    }
-
-    private Predicate<T> hasComparatorTestPassed(final BiPredicate<T, T> comparator) {
-        return new Predicate<T>() {
-            @Override
-            public boolean test(T item) throws Exception {
-                return comparator.test(Chain.this.item, item);
-            }
-        };
     }
 
     /**
@@ -318,7 +359,6 @@ public class Chain<T> implements
         }
         return this;
     }
-
 
     @Override
     public Collector<T> and(T item) {
@@ -399,31 +439,5 @@ public class Chain<T> implements
      */
     public Logger<Chain<T>, T> log(Object tag) {
         return new Logger<>(this, configuration, tag);
-    }
-
-    @Override
-    public Proxy<Chain<T>, T> access() {
-        return new Proxy<Chain<T>, T>() {
-
-            @Override
-            T getItem() {
-                return item;
-            }
-
-            @Override
-            InternalConfiguration getConfiguration() {
-                return configuration;
-            }
-
-            @Override
-            Chain<T> copy(T item, InternalConfiguration configuration) {
-                return new Chain<>(item, configuration);
-            }
-
-            @Override
-            Chain<T> owner() {
-                return Chain.this;
-            }
-        };
     }
 }

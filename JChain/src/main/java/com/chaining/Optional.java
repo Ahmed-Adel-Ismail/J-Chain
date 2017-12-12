@@ -3,11 +3,15 @@ package com.chaining;
 
 import com.chaining.interfaces.DefaultIfEmpty;
 
+import java.util.Collection;
+
 import io.reactivex.Maybe;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.BiConsumer;
+import io.reactivex.functions.BiPredicate;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
 
 /**
  * a class that acts as an RxJava {@link Maybe}, but it returns back to the Chain if possible
@@ -15,6 +19,7 @@ import io.reactivex.functions.Function;
  * Created by Ahmed Adel Ismail on 11/6/2017.
  */
 public class Optional<T> implements
+        Conditional<Optional<T>, T>,
         Internal<Optional<T>, T>,
         Function<Consumer<T>, Optional<T>>,
         DefaultIfEmpty<T> {
@@ -88,6 +93,94 @@ public class Optional<T> implements
         }
         return this;
     }
+
+    /**
+     * pass a {@link Predicate} that if it returned {@code true}, it's
+     * {@link Condition#then(Consumer)} will update the current Object, else nothing
+     * will happen
+     *
+     * @param predicate the {@link Predicate} that will decide weather the
+     *                  {@link Condition#then(Consumer)} will update the current Object or not
+     * @return a {@link Condition} to supply it's {@link Condition#then(Consumer)}
+     * {@link Consumer}
+     */
+    public Condition<Optional<T>, T> when(Predicate<T> predicate) {
+        return Condition.createNormal(this, predicate);
+    }
+
+
+    /**
+     * pass a {@link Predicate} that if it returned {@code false}, it's
+     * {@link Condition#then(Consumer)} will update the current Object, else nothing
+     * will happen
+     *
+     * @param predicate the {@link Predicate} that will decide weather the
+     *                  {@link Condition#then(Consumer)} will update the current Object or not
+     * @return a {@link Condition} to supply it's {@link Condition#then(Consumer)}
+     * {@link Consumer}
+     */
+    public Condition<Optional<T>, T> whenNot(Predicate<T> predicate) {
+        return Condition.createNegated(this, predicate);
+    }
+
+    /**
+     * check if the current Object in the {@link Optional} is available in the passed {@link Collection}
+     *
+     * @param collection the {@link Collection} that holds the items
+     * @return a {@link Condition} that will execute it's {@link Condition#then(Consumer)} or
+     * similar methods if the item is available in the passed {@link Collection}
+     */
+    public Condition<Optional<T>, T> whenIn(Collection<T> collection) {
+        return whenIn(collection, new IsEqualComparator<T>());
+    }
+
+    /**
+     * check if the current Object in the {@link Optional} is available in the passed {@link Collection}
+     *
+     * @param collection the {@link Collection} that holds the items
+     * @param comparator the {@link BiPredicate} that will be invoked over every item, the stored
+     *                   Object will be passed as it's first parameter, and the item in the
+     *                   {@link Collection} will be passed as the second parameter, if the returned
+     *                   value is {@code true}, this means that both items are equal, if
+     *                   the returned item is {@code false}, they do not match
+     * @return a {@link Condition} that will execute it's {@link Condition#then(Consumer)} or
+     * similar methods if the item is available in the passed {@link Collection}
+     */
+    public Condition<Optional<T>, T> whenIn(Collection<T> collection, BiPredicate<T, T> comparator) {
+        return Condition.createNormal(this,
+                new InOperator<>(collection, comparator, chain.configuration));
+    }
+
+    /**
+     * check if the current Object in the {@link Optional} is NOT available in the
+     * passed {@link Collection}
+     *
+     * @param collection the {@link Collection} that holds the items
+     * @return a {@link Condition} that will execute it's {@link Condition#then(Consumer)} or
+     * similar methods if the item is NOT available in the passed {@link Collection}
+     */
+    public Condition<Optional<T>, T> whenNotIn(Collection<T> collection) {
+        return whenNotIn(collection, new IsEqualComparator<T>());
+    }
+
+    /**
+     * check if the current Object in the {@link Optional} is NOT available in the
+     * passed {@link Collection}
+     *
+     * @param collection the {@link Collection} that holds the items
+     * @param comparator the {@link BiPredicate} that will be invoked over every item, the stored
+     *                   Object will be passed as it's first parameter, and the item in the
+     *                   {@link Collection} will be passed as the second parameter, if the returned
+     *                   value is {@code true}, this means that both items are equal, if
+     *                   the returned item is {@code false}, they do not match
+     * @return a {@link Condition} that will execute it's {@link Condition#then(Consumer)} or
+     * similar methods if the item is NOT available in the passed {@link Collection}
+     */
+    public Condition<Optional<T>, T> whenNotIn(Collection<T> collection, BiPredicate<T, T> comparator) {
+        return Condition.createNegated(this,
+                new InOperator<>(collection, comparator, chain.configuration));
+    }
+
 
     @Override
     public Proxy<Optional<T>, T> access() {
