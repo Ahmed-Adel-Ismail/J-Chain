@@ -9,7 +9,9 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class GuardTest {
 
@@ -261,7 +263,6 @@ public class GuardTest {
     }
 
 
-
     @Test
     public void onErrorMapItemWithNoErrorThenReturnEmptyOptional() {
         String result = Chain.let(0)
@@ -294,6 +295,48 @@ public class GuardTest {
                     }
                 });
 
+    }
+
+    @Test
+    public void applyWithNoErrorInGuardThenInvokeApplyFunction() {
+        Boolean[] result = Chain.let(new Boolean[]{false})
+                .guard(new Consumer<Boolean[]>() {
+                    @Override
+                    public void accept(Boolean[] booleans) throws Exception {
+                        // do nothing
+                    }
+                })
+                .apply(new Consumer<Boolean[]>() {
+                    @Override
+                    public void accept(Boolean[] booleans) throws Exception {
+                        booleans[0] = true;
+                    }
+                })
+                .onErrorReturnItem(new Boolean[]{false})
+                .call();
+
+        assertTrue(result[0]);
+    }
+
+    @Test
+    public void applyWithErrorInGuardThenDoNotInvokeApplyFunction() {
+        Boolean[] result = Chain.let(new Boolean[]{false})
+                .guard(new Consumer<Boolean[]>() {
+                    @Override
+                    public void accept(Boolean[] booleans) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                })
+                .apply(new Consumer<Boolean[]>() {
+                    @Override
+                    public void accept(Boolean[] booleans) throws Exception {
+                        booleans[0] = true;
+                    }
+                })
+                .onErrorReturnItem(new Boolean[]{false})
+                .call();
+
+        assertFalse(result[0]);
     }
 
     @Test

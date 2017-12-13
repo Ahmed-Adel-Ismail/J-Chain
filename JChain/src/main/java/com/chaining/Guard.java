@@ -74,6 +74,19 @@ public class Guard<S extends Internal<S, T>, T> implements Internal<Guard<S, T>,
     }
 
     /**
+     * apply an action to the stored item if no error occurred
+     *
+     * @param action the action to be applied
+     * @return {@code this} instance for chaining
+     */
+    public Guard<S, T> apply(Consumer<T> action) {
+        if (error == null) {
+            Invoker.invoke(action, proxy.getItem());
+        }
+        return this;
+    }
+
+    /**
      * provide a {@link Function} that will return a fallback item if the {@link Callable} that was
      * passed to this {@link Guard} crashed
      *
