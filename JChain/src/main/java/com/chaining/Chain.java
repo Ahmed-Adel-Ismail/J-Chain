@@ -318,7 +318,7 @@ public class Chain<T> implements
      * @return a new {@link Chain}
      */
     public <R> Chain<R> to(@NonNull R item) {
-        return new Chain<>(item, InternalConfiguration.getInstance(null));
+        return new Chain<>(item, configuration);
     }
 
     /**
@@ -329,7 +329,7 @@ public class Chain<T> implements
      * @return a new {@link Chain}
      */
     public <R> Chain<R> to(@NonNull Callable<R> itemCallable) {
-        return new Chain<>(Invoker.invoke(itemCallable), InternalConfiguration.getInstance(null));
+        return new Chain<>(Invoker.invoke(itemCallable), configuration);
     }
 
     /**
