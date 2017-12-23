@@ -5,7 +5,6 @@ import com.chaining.interfaces.DefaultIfEmpty;
 
 import java.util.Collection;
 
-import io.reactivex.Maybe;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.BiPredicate;
@@ -14,7 +13,10 @@ import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 
 /**
- * a class that acts as an RxJava {@link Maybe}, but it returns back to the Chain if possible
+ * a class that acts as a {@link Chain} that may hold a {@code null} value,
+ * if the stored item is {@code null}, all operations will be skipped until the
+ * {@link #defaultIfEmpty(Object)} is called, so the default item is returned ... if the item was
+ * not {@code null}, the {@link #defaultIfEmpty(Object)} will be skipped
  * <p>
  * Created by Ahmed Adel Ismail on 11/6/2017.
  */
