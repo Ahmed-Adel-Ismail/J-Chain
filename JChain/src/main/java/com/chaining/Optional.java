@@ -6,6 +6,7 @@ import com.chaining.interfaces.DefaultIfEmpty;
 import java.util.Collection;
 
 import io.reactivex.annotations.NonNull;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.BiPredicate;
 import io.reactivex.functions.Consumer;
@@ -49,6 +50,19 @@ public class Optional<T> implements
     public Optional<T> apply(Consumer<T> action) {
         if (chain.item != null) {
             Invoker.invoke(action, chain.item);
+        }
+        return this;
+    }
+
+    /**
+     * invoke an action to the stored item if not null
+     *
+     * @param action the action to be applied
+     * @return {@code this} instance for chaining
+     */
+    public Optional<T> invoke(Action action) {
+        if (chain.item != null) {
+            Invoker.invoke(action);
         }
         return this;
     }

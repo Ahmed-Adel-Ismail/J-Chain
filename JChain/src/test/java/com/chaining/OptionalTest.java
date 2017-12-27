@@ -5,6 +5,7 @@ import org.junit.Test;
 import java.util.Arrays;
 
 import io.reactivex.annotations.NonNull;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
@@ -55,6 +56,48 @@ public class OptionalTest {
                 .apply(new Consumer<TestClass>() {
                     @Override
                     public void accept(TestClass testClass) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                });
+    }
+
+    @Test
+    public void invokeForNonNullChainThenExecuteInvoke() {
+        final boolean[] result = {false};
+        Chain.optional(new TestClass())
+                .invoke(new Action() {
+                    @Override
+                    public void run() {
+                        result[0] = true;
+                    }
+                });
+
+        assertTrue(result[0]);
+    }
+
+
+    @Test
+    public void invokeWithNullChainThenDoNothing() {
+
+        final boolean[] result = {false};
+        Chain.optional(null)
+                .invoke(new Action() {
+                    @Override
+                    public void run() {
+                        result[0] = true;
+                    }
+                });
+
+        assertFalse(result[0]);
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void invokeWithCrashThenThrowException() {
+
+        Chain.optional(new TestClass())
+                .invoke(new Action() {
+                    @Override
+                    public void run() throws Exception {
                         throw new UnsupportedOperationException();
                     }
                 });
