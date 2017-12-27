@@ -4,6 +4,7 @@ package com.chaining;
 import com.chaining.interfaces.DefaultIfEmpty;
 
 import java.util.Collection;
+import java.util.concurrent.Callable;
 
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Action;
@@ -78,6 +79,37 @@ public class Optional<T> implements
     public <R> Optional<R> map(Function<T, R> mapper) {
         if (chain.item != null) {
             return new Optional<>(Invoker.invoke(mapper, chain.item), chain.configuration);
+        } else {
+            return new Optional<>(null, chain.configuration);
+        }
+    }
+
+    /**
+     * convert the current {@link Optional} to another {@link Optional} if the current item is
+     * not {@code null}
+     *
+     * @param item an item to be the root for the new {@link Optional}
+     * @return a new {@link Optional}
+     */
+    public <R> Optional<R> to(@NonNull R item) {
+        if (chain.item != null) {
+            return new Optional<>(item, chain.configuration);
+        } else {
+            return new Optional<>(null, chain.configuration);
+        }
+    }
+
+    /**
+     * convert the current {@link Optional} to another {@link Optional} if the current item is
+     * not {@code null}
+     *
+     * @param itemCallable a {@link Callable} that will return an item to be the root for the new
+     *                     {@link Optional}
+     * @return a new {@link Optional}
+     */
+    public <R> Optional<R> to(@NonNull Callable<R> itemCallable) {
+        if (chain.item != null) {
+            return new Optional<>(Invoker.invoke(itemCallable), chain.configuration);
         } else {
             return new Optional<>(null, chain.configuration);
         }

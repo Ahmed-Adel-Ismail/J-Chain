@@ -3,6 +3,7 @@ package com.chaining;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.Callable;
 
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Action;
@@ -163,6 +164,74 @@ public class OptionalTest {
                 .map(new Function<TestClass, TestClassTwo>() {
                     @Override
                     public TestClassTwo apply(TestClass testClass) {
+                        throw new UnsupportedOperationException();
+                    }
+                });
+    }
+
+    @Test
+    public void toWithTestClassTwoForTestClassChainThenReturnTestClassTwo() {
+
+        TestClassTwo testClassTwo = Chain.optional(new TestClass())
+                .to(new TestClassTwo("1"))
+                .defaultIfEmpty(new TestClassTwo("2"))
+                .call();
+
+        assertEquals("1", testClassTwo.text);
+    }
+
+
+    @Test
+    public void toWithNullChainThenDoNothing() {
+
+        TestClassTwo testClassTwo = Chain.<TestClass>optional(null)
+                .to(new TestClassTwo("1"))
+                .defaultIfEmpty(new TestClassTwo("2"))
+                .call();
+
+        assertEquals("2", testClassTwo.text);
+    }
+
+    @Test
+    public void toCallableWithTestClassTwoForTestClassChainThenReturnTestClassTwo() {
+
+        TestClassTwo testClassTwo = Chain.optional(new TestClass())
+                .to(new Callable<TestClassTwo>() {
+                    @Override
+                    public TestClassTwo call() {
+                        return new TestClassTwo("1");
+                    }
+                })
+                .defaultIfEmpty(new TestClassTwo("2"))
+                .call();
+
+        assertEquals("1", testClassTwo.text);
+    }
+
+
+    @Test
+    public void toCallableWithNullChainThenDoNothing() {
+
+        TestClassTwo testClassTwo = Chain.<TestClass>optional(null)
+                .to(new Callable<TestClassTwo>() {
+                    @Override
+                    public TestClassTwo call() {
+                        return new TestClassTwo("1");
+                    }
+                })
+                .defaultIfEmpty(new TestClassTwo("2"))
+                .call();
+
+        assertEquals("2", testClassTwo.text);
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void toCallableWithCrashThenThrowException() {
+
+        Chain.optional(new TestClass())
+                .to(new Callable<TestClassTwo>() {
+                    @Override
+                    public TestClassTwo call() {
                         throw new UnsupportedOperationException();
                     }
                 });
