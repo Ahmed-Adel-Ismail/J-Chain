@@ -12,7 +12,6 @@ import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Function;
-import io.reactivex.functions.Predicate;
 
 /**
  * a class that keeps collecting new items into a list then returns the new List on request
@@ -77,29 +76,18 @@ public class Collector<T> implements
     }
 
     private <R> List<R> nonNullMappedItems(Function<T, R> mapper) {
-        return Observable.fromIterable(nullableMappedItems(mapper))
-                .filter(byNonNullMappedItems())
-                .toList()
-                .blockingGet();
-
-    }
-
-    private <R> List<R> nullableMappedItems(Function<T, R> mapper) {
         List<R> mappedItems = new ArrayList<>(items.size());
         for (T item : items) {
-            mappedItems.add(Invoker.invoke(mapper, item));
+            addMappedItemIfNonNull(Invoker.invoke(mapper, item), mappedItems);
         }
         return mappedItems;
+
     }
 
-    private <R> Predicate<R> byNonNullMappedItems() {
-        return new Predicate<R>() {
-            @Override
-            public boolean test(R mappedItem) throws Exception {
-                return mappedItem != null;
-            }
-        };
+    private <R> void addMappedItemIfNonNull(R mappedItem, List<R> mappedItems) {
+        if (mappedItem != null) mappedItems.add(mappedItem);
     }
+
 
     /**
      * reduce all the items in this {@link Collector}
