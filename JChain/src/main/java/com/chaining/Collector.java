@@ -3,6 +3,7 @@ package com.chaining;
 import com.chaining.interfaces.And;
 import com.chaining.interfaces.Monad;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,6 +12,7 @@ import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
 
 /**
  * a class that keeps collecting new items into a list then returns the new List on request
@@ -53,7 +55,8 @@ public class Collector<T> implements
     }
 
     /**
-     * invoke a mapper invoke on every item in this {@link Collector}
+     * invoke a mapper invoke on every item in this {@link Collector}, if the mapper function
+     * returned {@code null}, this item will be removed from the list
      *
      * @param mapper the mapper {@link Function}
      * @return the new {@link Collector} with mapped items
@@ -69,15 +72,33 @@ public class Collector<T> implements
     @NonNull
     private <R> Collector<R> invokeMap(Function<T, R> mapper) {
         Collector<R> collector = new Collector<>(configuration);
-        collector.items.addAll(mappedItems(mapper));
+        collector.items.addAll(nonNullMappedItems(mapper));
         return collector;
     }
 
-    private <R> List<R> mappedItems(Function<T, R> mapper) {
-        return Observable.fromIterable(items)
-                .map(mapper)
+    private <R> List<R> nonNullMappedItems(Function<T, R> mapper) {
+        return Observable.fromIterable(nullableMappedItems(mapper))
+                .filter(byNonNullMappedItems())
                 .toList()
                 .blockingGet();
+
+    }
+
+    private <R> List<R> nullableMappedItems(Function<T, R> mapper) {
+        List<R> mappedItems = new ArrayList<>(items.size());
+        for (T item : items) {
+            mappedItems.add(Invoker.invoke(mapper, item));
+        }
+        return mappedItems;
+    }
+
+    private <R> Predicate<R> byNonNullMappedItems() {
+        return new Predicate<R>() {
+            @Override
+            public boolean test(R mappedItem) throws Exception {
+                return mappedItem != null;
+            }
+        };
     }
 
     /**
