@@ -83,7 +83,7 @@ public class Guard<S extends Internal<S, T>, T> implements Internal<Guard<S, T>,
         if (error == null) {
             Invoker.invoke(action, proxy.getItem());
         }
-        return this;
+        return new Guard<>(proxy,error);
     }
 
     /**

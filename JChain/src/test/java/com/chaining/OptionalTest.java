@@ -13,6 +13,7 @@ import io.reactivex.functions.Predicate;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class OptionalTest {
@@ -57,6 +58,49 @@ public class OptionalTest {
                 .apply(new Consumer<TestClass>() {
                     @Override
                     public void accept(TestClass testClass) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                });
+    }
+
+    @Test
+    public void flatMapMaybeForNonNullChainThenReturnNonEmptyMaybe() {
+
+        TestClassTwo testClass = Chain.optional(new TestClass("1"))
+                .flatMapMaybe(new Function<TestClass, TestClassTwo>() {
+                    @Override
+                    public TestClassTwo apply(TestClass testClass) throws Exception {
+                        return new TestClassTwo(testClass.text);
+                    }
+                })
+                .blockingGet();
+
+        assertEquals("1", testClass.text);
+    }
+
+
+    @Test
+    public void flatMapMaybeForNullChainThenReturnEmptyMaybe() {
+
+        TestClassTwo testClass = Chain.optional((TestClass) null)
+                .flatMapMaybe(new Function<TestClass, TestClassTwo>() {
+                    @Override
+                    public TestClassTwo apply(TestClass testClass) throws Exception {
+                        return new TestClassTwo(testClass.text);
+                    }
+                })
+                .blockingGet();
+
+        assertNull(testClass);
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void flatMapMaybeWithCrashThenThrowException() {
+
+        Chain.optional(new TestClass())
+                .flatMapMaybe(new Function<TestClass, Object>() {
+                    @Override
+                    public Object apply(TestClass testClass) throws Exception {
                         throw new UnsupportedOperationException();
                     }
                 });

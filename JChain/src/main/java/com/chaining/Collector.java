@@ -36,7 +36,13 @@ public class Collector<T> implements
         if (item != null) {
             items.add(item);
         }
-        return this;
+        return copy();
+    }
+
+    private Collector<T> copy() {
+        Collector<T> collector = new Collector<>(configuration);
+        collector.items.addAll(items);
+        return collector;
     }
 
     /**

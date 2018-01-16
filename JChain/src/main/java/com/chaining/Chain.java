@@ -284,7 +284,7 @@ public class Chain<T> implements
      */
     public Chain<T> apply(Consumer<T> action) {
         Invoker.invoke(action, item);
-        return this;
+        return new Chain<>(item, configuration);
     }
 
     /**
@@ -297,7 +297,7 @@ public class Chain<T> implements
     @SideEffect("usually this operation is done for side-effects")
     public Chain<T> invoke(Action action) {
         Invoker.invoke(action);
-        return this;
+        return new Chain<>(item, configuration);
     }
 
     /**
@@ -357,7 +357,7 @@ public class Chain<T> implements
         if (configuration.isDebugging()) {
             Invoker.invoke(action, item);
         }
-        return this;
+        return new Chain<>(item, configuration);
     }
 
     @Override

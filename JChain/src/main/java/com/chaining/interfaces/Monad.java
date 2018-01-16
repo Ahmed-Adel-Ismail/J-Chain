@@ -7,7 +7,7 @@ import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Function;
 
 /**
- * an interface implemented by Monads, or classes with flatMap() methods
+ * an interface implemented by Monads, or classes with flatMapMaybe() methods
  * <p>
  * Created by Ahmed Adel Ismail on 11/13/2017.
  */

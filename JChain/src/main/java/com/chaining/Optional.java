@@ -6,6 +6,7 @@ import com.chaining.interfaces.DefaultIfEmpty;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
+import io.reactivex.Maybe;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.BiConsumer;
@@ -52,7 +53,7 @@ public class Optional<T> implements
         if (chain.item != null) {
             Invoker.invoke(action, chain.item);
         }
-        return this;
+        return new Optional<>(chain.item, chain.configuration);
     }
 
     /**
@@ -65,7 +66,7 @@ public class Optional<T> implements
         if (chain.item != null) {
             Invoker.invoke(action);
         }
-        return this;
+        return new Optional<>(chain.item, chain.configuration);
     }
 
     /**
@@ -81,6 +82,32 @@ public class Optional<T> implements
             return new Optional<>(Invoker.invoke(mapper, chain.item), chain.configuration);
         } else {
             return new Optional<>(null, chain.configuration);
+        }
+    }
+
+    /**
+     * apply an action to the stored item if not null, this action will cause this {@link Optional}
+     * to be changed to a {@link Maybe}, if the stored item is {@code null} then an empty
+     * {@link Maybe} will be returned
+     *
+     * @param flatMapper the flat-mapped {@link Function}
+     * @param <R>        the new expected type
+     * @return a {@link Maybe} that either hold a value, or is empty
+     */
+    public <R> Maybe<R> flatMapMaybe(Function<T, R> flatMapper) {
+        if (chain.item != null) {
+            return maybeFromNonNullItem(flatMapper);
+        } else {
+            return Maybe.empty();
+        }
+    }
+
+    private <R> Maybe<R> maybeFromNonNullItem(Function<T, R> flatMapper) {
+        R newItem = Invoker.invoke(flatMapper, chain.item);
+        if (newItem != null) {
+            return Maybe.just(newItem);
+        } else {
+            return Maybe.empty();
         }
     }
 
@@ -139,7 +166,7 @@ public class Optional<T> implements
         if (chain.configuration.isDebugging() && chain.item != null) {
             Invoker.invoke(action, chain.item);
         }
-        return this;
+        return new Optional<>(chain.item, chain.configuration);
     }
 
     /**
