@@ -188,6 +188,33 @@ public class ChainTest {
     }
 
     @Test
+    public void lazyApplyConsumerWithSetTextOnTestClassThenFindTextValueUpdated() {
+        TestClass testClass = Chain.let(new TestClass())
+                .lazyApply(new Consumer<TestClass>() {
+                    @Override
+                    public void accept(@NonNull TestClass testClass) throws Exception {
+                        testClass.setText("!");
+                    }
+                })
+                .call();
+
+        assertEquals("!", testClass.text);
+    }
+
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void lazyApplyConsumerWithExceptionThenThrowException() {
+        Chain.let(new TestClass())
+                .lazyApply(new Consumer<TestClass>() {
+                    @Override
+                    public void accept(@NonNull TestClass testClass) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                })
+                .call();
+    }
+
+    @Test
     public void invokeWithSetTextOnTestClassThenFindTextValueUpdated() {
         final boolean[] result = {false};
         Chain.let(new TestClass())
@@ -245,6 +272,49 @@ public class ChainTest {
                     }
                 })
                 .map(new Function<TestClass, TestClassTwo>() {
+
+                    @Override
+                    public TestClassTwo apply(@NonNull TestClass testClass) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                })
+                .call();
+
+
+    }
+
+    @Test
+    public void lazyMapWithTestClassToTestClassTwoThenReturnTestClassTwo() {
+        TestClassTwo testClassTwo = Chain.let(new TestClass())
+                .apply(new Consumer<TestClass>() {
+                    @Override
+                    public void accept(@NonNull TestClass testClass) throws Exception {
+                        testClass.setText("!");
+                    }
+                }).lazyMap(new Function<TestClass, TestClassTwo>() {
+
+                    @Override
+                    public TestClassTwo apply(@NonNull TestClass testClass) throws Exception {
+                        TestClassTwo testClassTwo = new TestClassTwo();
+                        testClassTwo.setText(testClass.text);
+                        return testClassTwo;
+                    }
+                }).call();
+
+        assertEquals("!", testClassTwo.text);
+    }
+
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void lazyMapWithExceptionThenThrowException() {
+        Chain.let(new TestClass())
+                .apply(new Consumer<TestClass>() {
+                    @Override
+                    public void accept(@NonNull TestClass testClass) throws Exception {
+                        testClass.setText("!");
+                    }
+                })
+                .lazyMap(new Function<TestClass, TestClassTwo>() {
 
                     @Override
                     public TestClassTwo apply(@NonNull TestClass testClass) throws Exception {
@@ -555,10 +625,10 @@ public class ChainTest {
     }
 
     @Test
-    public void whenInWithValidCollectionThenReturnValidCondition(){
+    public void whenInWithValidCollectionThenReturnValidCondition() {
 
         boolean result = Chain.let(0)
-                .whenIn(Arrays.asList(0,1,2,3,4))
+                .whenIn(Arrays.asList(0, 1, 2, 3, 4))
                 .thenTo(true)
                 .defaultIfEmpty(false)
                 .call();
@@ -568,10 +638,10 @@ public class ChainTest {
 
 
     @Test
-    public void whenInWithInValidCollectionThenReturnInValidCondition(){
+    public void whenInWithInValidCollectionThenReturnInValidCondition() {
 
         boolean result = Chain.let(0)
-                .whenIn(Arrays.asList(1,2,3,4))
+                .whenIn(Arrays.asList(1, 2, 3, 4))
                 .thenTo(true)
                 .defaultIfEmpty(false)
                 .call();
@@ -580,10 +650,10 @@ public class ChainTest {
     }
 
     @Test
-    public void whenNotInWithValidCollectionThenReturnInValidCondition(){
+    public void whenNotInWithValidCollectionThenReturnInValidCondition() {
 
         boolean result = Chain.let(0)
-                .whenNotIn(Arrays.asList(0,1,2,3,4))
+                .whenNotIn(Arrays.asList(0, 1, 2, 3, 4))
                 .thenTo(true)
                 .defaultIfEmpty(false)
                 .call();
@@ -592,10 +662,10 @@ public class ChainTest {
     }
 
     @Test
-    public void whenNotInWithInValidCollectionThenReturnValidCondition(){
+    public void whenNotInWithInValidCollectionThenReturnValidCondition() {
 
         boolean result = Chain.let(0)
-                .whenNotIn(Arrays.asList(1,2,3,4))
+                .whenNotIn(Arrays.asList(1, 2, 3, 4))
                 .thenTo(true)
                 .defaultIfEmpty(false)
                 .call();
@@ -604,11 +674,11 @@ public class ChainTest {
     }
 
     @Test
-    public void runChainProxyTester(){
+    public void runChainProxyTester() {
         Chain<Integer> chain =
-                new Chain<>(0,InternalConfiguration.getInstance("runChainProxyTester"));
+                new Chain<>(0, InternalConfiguration.getInstance("runChainProxyTester"));
 
-        new ProxyTester<>(chain,1).run();
+        new ProxyTester<>(chain, 1).run();
     }
 
 }

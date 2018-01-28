@@ -11,6 +11,7 @@ import io.reactivex.Observable;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.BiFunction;
+import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 
 /**
@@ -57,6 +58,17 @@ public class Collector<T> implements
     @Override
     public <R> R flatMap(@NonNull Function<List<T>, R> flatMapper) {
         return Invoker.invoke(flatMapper, items);
+    }
+
+    /**
+     * iterate over the items and invoke a certain action
+     *
+     * @param action a {@link Consumer} that will be invoked over all items in the {@link Collector}
+     * @return {@code this} {@link Collector} after iteration
+     */
+    public Collector<T> forEach(@NonNull Consumer<T> action) {
+        Observable.fromIterable(items).blockingForEach(action);
+        return this;
     }
 
     /**

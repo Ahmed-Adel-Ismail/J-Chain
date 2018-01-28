@@ -7,6 +7,7 @@ import java.util.List;
 
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.BiFunction;
+import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 
 import static org.junit.Assert.assertEquals;
@@ -167,12 +168,27 @@ public class CollectorTest {
     }
 
     @Test
-    public void runCollectorProxyTester(){
+    public void runCollectorProxyTester() {
         Collector<Integer> collector =
                 new Collector<>(InternalConfiguration.getInstance("runCollectorProxyTester"));
 
         collector.and(1).and(2).and(3);
 
-        new ProxyTester<>(collector, Arrays.asList(4,5,6)).run();
+        new ProxyTester<>(collector, Arrays.asList(4, 5, 6)).run();
+    }
+
+    @Test
+    public void forEachWithValidConsumerThenIteratenOrderSuccessfully() {
+        final Integer[] result = new Integer[]{0};
+        Chain.let(0)
+                .and(1)
+                .and(2)
+                .forEach(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        result[0] = integer;
+                    }
+                });
+        assertEquals(Integer.valueOf(2), result[0]);
     }
 }
