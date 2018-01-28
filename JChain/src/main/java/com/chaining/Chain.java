@@ -5,6 +5,7 @@ import com.chaining.annotations.SideEffect;
 import com.chaining.interfaces.And;
 import com.chaining.interfaces.DefaultIfEmpty;
 import com.chaining.interfaces.Monad;
+import com.functional.curry.Curry;
 
 import org.javatuples.Pair;
 
@@ -439,5 +440,40 @@ public class Chain<T> implements
      */
     public Logger<Chain<T>, T> log(Object tag) {
         return new Logger<>(this, configuration, tag);
+    }
+
+    /**
+     * similar to {@link #apply(Consumer)} method, but this one is not executed when it is called,
+     * the passed {@link Consumer} will be invoked when {@link Lazy#call()} or
+     * {@link Lazy#flatMap(Function)} is invoked
+     *
+     * @param lazyAction the {@link Consumer} that will be executed lazily
+     * @return a {@link Lazy} to handle the delayed operation
+     */
+    public Lazy<T> lazyApply(final Consumer<T> lazyAction) {
+        return new Lazy<>(lazyApplyCallable(lazyAction));
+    }
+
+    private Callable<T> lazyApplyCallable(final Consumer<T> lazyAction) {
+        return new Callable<T>() {
+            @Override
+            public T call() throws Exception {
+                lazyAction.accept(item);
+                return item;
+            }
+        };
+    }
+
+    /**
+     * similar to {@link #map(Function)} method, but this one is not executed when it is called,
+     * the passed {@link Function} will be invoked when {@link Lazy#call()} or
+     * {@link Lazy#flatMap(Function)} is invoked
+     *
+     * @param lazyMapper the {@link Function} that will be executed lazily
+     * @param <R>        the expected new type
+     * @return a {@link Lazy} to handle the delayed operation
+     */
+    public <R> Lazy<R> lazyMap(final Function<T, R> lazyMapper) {
+        return new Lazy<>(Curry.toCallable(lazyMapper, item));
     }
 }
