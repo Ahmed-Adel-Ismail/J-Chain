@@ -129,19 +129,22 @@ To set the Debugging behavior, you will need to invoke <b>ChainConfiguration.set
     
 # Chain Types - Chain, Optional, Guard 
 
-There are three major Types in the Chain API, all are created as follows :
+There are major Types in the Chain API, all are created as follows :
 
     Chain.let(Object) : start a Chain with a non-null value, this creates a Chain Object
 	Chain.optional(Object) : start a Chain that may hold a null value, this creates an Optional Object 
 	Chain.call(Callable) : start a Chain that holds the result of Callable.call(), this creates a Chain Object
     Guard.call(Callable) : start a Chain that holds the result of a Callable.call() that may crash, ths creates a Guard Object
+    Lazy.defer(Callable) : create a Lazy that will invoke the passed callable the first time it's call() or flatMap() methods are invoked
     
 # Chain Types Operators
 
 A summery of the Operations that can be invoked while using Chain Types, some operators may not be available in some types, based on the nature of each type
 
     apply(Consumer) : update the stored item through the passed function
+	lazyApply(Consumer) : update the stored item through the passed function but the update operation wont happen unless you invoke call() or flatMap() 
 	map(Function) : convert the stored item into another item through a mapper function
+	lazyMap(Function) : convert the stored item into another item through a mapper function, the passed function wont be executed unless you invoke call() or flatMap()
 	flatMap(Function) :  convert the Chain itself to another Object through the passed function
 	to(Object) : convert the stored item to another item through passing this new item directly
 	to(Callable) : convert the stored item to another item through the result of the passed Callable
@@ -248,7 +251,7 @@ A class responsible for the Chain API configuration, like debugging mode, and Lo
     Step 2. Add the dependency
     
 	dependencies {
-		compile 'com.github.Ahmed-Adel-Ismail:J-Chain:0.1.1'
+		compile 'com.github.Ahmed-Adel-Ismail:J-Chain:0.1.2'
 	}
 
                 
