@@ -4,6 +4,7 @@ package com.chaining;
 import com.chaining.interfaces.DefaultIfEmpty;
 
 import java.util.Collection;
+import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 
 import io.reactivex.Maybe;
@@ -180,7 +181,20 @@ public class Optional<T> implements
      * {@link Consumer}
      */
     public Condition<Optional<T>, T> when(Predicate<T> predicate) {
-        return Condition.createNormal(this, predicate);
+        if (chain.item == null) {
+            return Condition.createNormal(this, nonPassingPredicate());
+        } else {
+            return Condition.createNormal(this, predicate);
+        }
+    }
+
+    private Predicate<T> nonPassingPredicate() {
+        return new Predicate<T>() {
+            @Override
+            public boolean test(T item) {
+                return false;
+            }
+        };
     }
 
 
@@ -195,8 +209,13 @@ public class Optional<T> implements
      * {@link Consumer}
      */
     public Condition<Optional<T>, T> whenNot(Predicate<T> predicate) {
-        return Condition.createNegated(this, predicate);
+        if (chain.item == null) {
+            return Condition.createNormal(this, nonPassingPredicate());
+        } else {
+            return Condition.createNegated(this, predicate);
+        }
     }
+
 
     /**
      * check if the current Object in the {@link Optional} is available in the passed {@link Collection}
@@ -252,8 +271,30 @@ public class Optional<T> implements
      * similar methods if the item is NOT available in the passed {@link Collection}
      */
     public Condition<Optional<T>, T> whenNotIn(Collection<T> collection, BiPredicate<T, T> comparator) {
-        return Condition.createNegated(this,
-                new InOperator<>(collection, comparator, chain.configuration));
+
+        if (chain.item == null) {
+            return Condition.createNormal(this,
+                    new InOperator<>(collection, comparator, chain.configuration));
+        } else {
+            return Condition.createNegated(this,
+                    new InOperator<>(collection, comparator, chain.configuration));
+        }
+    }
+
+    /**
+     * retrieve the item stored in this {@link Optional} if not empty, if this {@link Optional}
+     * is empty, this method will throw {@link NoSuchElementException}
+     *
+     * @return the item stored in this {@link Optional} if available
+     * @throws NoSuchElementException if no item is stored in this {@link Optional}
+     */
+    @NonNull
+    public T callOrCrash() throws NoSuchElementException {
+        if (chain.item == null) {
+            throw new NoSuchElementException("no item stored in the current " +
+                    Optional.class.getSimpleName());
+        }
+        return chain.item;
     }
 
 

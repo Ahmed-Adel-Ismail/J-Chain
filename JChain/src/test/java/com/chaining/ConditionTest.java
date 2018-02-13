@@ -20,6 +20,71 @@ public class ConditionTest {
             .getInstance("ConditionTest");
 
     @Test
+    public void whenEmptyWithEmptyValueThenInvokeThenWithConsumer(){
+        final boolean[] result = {false};
+        new Chain<>((TestClass)null, chainConfiguration)
+                .whenEmpty()
+                .then(new Consumer<TestClass>() {
+
+                    @Override
+                    public void accept(@NonNull TestClass testClass) throws Exception {
+                        result[0] = true;
+                    }
+                });
+
+        assertTrue(result[0]);
+    }
+
+    @Test
+    public void whenNotEmptyWithNotEmptyValueThenInvokeThenWithConsumer(){
+        final boolean[] result = {false};
+        new Chain<>(new TestClass(), chainConfiguration)
+                .whenNotEmpty()
+                .then(new Consumer<TestClass>() {
+
+                    @Override
+                    public void accept(@NonNull TestClass testClass) throws Exception {
+                        result[0] = true;
+                    }
+                });
+
+        assertTrue(result[0]);
+    }
+
+    @Test
+    public void whenEmptyWithNonEmptyValueThenDoNotInvokeThenWithConsumer(){
+        final boolean[] result = {false};
+        new Chain<>(new TestClass(), chainConfiguration)
+                .whenEmpty()
+                .then(new Consumer<TestClass>() {
+
+                    @Override
+                    public void accept(@NonNull TestClass testClass) throws Exception {
+                        result[0] = true;
+                    }
+                });
+
+        assertFalse(result[0]);
+    }
+
+    @Test
+    public void whenNotEmptyWithEmptyValueThenDoNotInvokeThenWithConsumer(){
+        final boolean[] result = {false};
+        new Chain<>((TestClass)null, chainConfiguration)
+                .whenNotEmpty()
+                .then(new Consumer<TestClass>() {
+
+                    @Override
+                    public void accept(@NonNull TestClass testClass) throws Exception {
+                        result[0] = true;
+                    }
+                });
+
+        assertFalse(result[0]);
+    }
+
+
+    @Test
     public void whenWithTruePredicateThenInvokeThenWithConsumer() {
         final boolean[] result = {false};
         new Chain<>(new TestClass(), chainConfiguration)
@@ -428,8 +493,6 @@ public class ConditionTest {
                 });
 
     }
-
-    /////////////////////
 
     @Test
     public void thenToItemWithValidConditionThenReturnAnOptionalContainingItem() {

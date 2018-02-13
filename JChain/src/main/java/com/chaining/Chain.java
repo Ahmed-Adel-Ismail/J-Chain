@@ -148,6 +148,7 @@ public class Chain<T> implements
         return item;
     }
 
+
     /**
      * pass a {@link Predicate} that if it returned {@code true}, it's
      * {@link Condition#then(Consumer)} will update the current Object, else nothing
@@ -174,6 +175,42 @@ public class Chain<T> implements
      */
     public Condition<Chain<T>, T> whenNot(Predicate<T> predicate) {
         return Condition.createNegated(this, predicate);
+    }
+
+    /**
+     * check if the current item is {@code null} or not, if {@code true}, it's
+     * {@link Condition#then(Consumer)} will update the current Object, else nothing
+     * will happen
+     *
+     * @return a {@link Condition} to supply it's {@link Condition#then(Consumer)}
+     * {@link Consumer}
+     */
+    public Condition<Chain<T>, T> whenEmpty() {
+        final boolean empty = item == null;
+        return Condition.createNormal(this, new Predicate<T>() {
+            @Override
+            public boolean test(T t) throws Exception {
+                return empty;
+            }
+        });
+    }
+
+    /**
+     * check if the current item is not {@code null} or not, if {@code true} (not null), it's
+     * {@link Condition#then(Consumer)} will update the current Object, else nothing
+     * will happen
+     *
+     * @return a {@link Condition} to supply it's {@link Condition#then(Consumer)}
+     * {@link Consumer}
+     */
+    public Condition<Chain<T>, T> whenNotEmpty() {
+        final boolean notEmpty = item != null;
+        return Condition.createNormal(this, new Predicate<T>() {
+            @Override
+            public boolean test(T t) throws Exception {
+                return notEmpty;
+            }
+        });
     }
 
     /**

@@ -58,12 +58,7 @@ public class Condition<S extends Conditional<S, T>, T> implements Internal<Condi
 
     private boolean isSourceChainUpdateAccepted() {
 
-        T item = sourceProxy.getItem();
-        if (item == null) {
-            return false;
-        }
-
-        boolean expression = Invoker.invoke(predicate, item);
+        boolean expression = Invoker.invoke(predicate, sourceProxy.getItem());
         if (negateExpression) {
             expression = !expression;
         }

@@ -3,6 +3,7 @@ package com.chaining;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 
 import io.reactivex.annotations.NonNull;
@@ -61,6 +62,29 @@ public class OptionalTest {
                         throw new UnsupportedOperationException();
                     }
                 });
+    }
+
+    @Test
+    public void callOrCrashWithNotEmptyOptionalThenReturnStoredItem() {
+
+        TestClass testClass = Chain.optional(new TestClass())
+                .apply(new Consumer<TestClass>() {
+                    @Override
+                    public void accept(TestClass testClass) {
+                        testClass.text = "1";
+                    }
+                })
+                .callOrCrash();
+
+        assertEquals("1", testClass.text);
+    }
+
+
+    @Test(expected = NoSuchElementException.class)
+    public void callOrCrashWithNotEmptyOptionalThenThrowNoSuchElement() {
+
+        TestClass testClass = Chain.<TestClass>optional(null)
+                .callOrCrash();
     }
 
     @Test
@@ -473,6 +497,18 @@ public class OptionalTest {
     public void whenNotInWithValidCollectionThenReturnInValidCondition() {
 
         boolean result = Chain.optional(0)
+                .whenNotIn(Arrays.asList(0, 1, 2, 3, 4))
+                .thenTo(true)
+                .defaultIfEmpty(false)
+                .call();
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void whenNotInWithNullItemThenReturnInValidCondition() {
+
+        boolean result = Chain.optional((Integer)null)
                 .whenNotIn(Arrays.asList(0, 1, 2, 3, 4))
                 .thenTo(true)
                 .defaultIfEmpty(false)
