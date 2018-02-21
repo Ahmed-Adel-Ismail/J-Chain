@@ -16,7 +16,8 @@ import io.reactivex.functions.Function;
  * <p>
  * Created by Ahmed Adel Ismail on 11/1/2017.
  */
-public class Guard<S extends Internal<S, T>, T> implements Internal<Guard<S, T>, T> {
+public class Guard<S extends Internal<S, T>, T> implements Internal<Guard<S, T>, T>
+{
 
     private final Proxy<S, T> proxy;
     private final Exception error;
@@ -74,6 +75,31 @@ public class Guard<S extends Internal<S, T>, T> implements Internal<Guard<S, T>,
     }
 
     /**
+     * invoke another risky action if the action before this did not crash
+     *
+     * @param action a {@link Function} that may crash
+     * @return a {@link Guard} that will either hold the result of the {@link Callable}, or an error
+     * that needs to be handled
+     */
+    public Guard<S, T> guard(final @NonNull Function<T, T> action) {
+        if (error == null) {
+            return new Guard<>(proxy, guardedFunctionCallable(action));
+        } else {
+            return new Guard<>(proxy, error);
+        }
+    }
+
+    private Callable<T> guardedFunctionCallable(@NonNull final Function<T, T> action) {
+        return new Callable<T>()
+        {
+            @Override
+            public T call() throws Exception {
+                return action.apply(proxy.getItem());
+            }
+        };
+    }
+
+    /**
      * apply an action to the stored item if no error occurred
      *
      * @param action the action to be applied
@@ -83,7 +109,7 @@ public class Guard<S extends Internal<S, T>, T> implements Internal<Guard<S, T>,
         if (error == null) {
             Invoker.invoke(action, proxy.getItem());
         }
-        return new Guard<>(proxy,error);
+        return new Guard<>(proxy, error);
     }
 
     /**
@@ -147,7 +173,8 @@ public class Guard<S extends Internal<S, T>, T> implements Internal<Guard<S, T>,
 
     @Override
     public Proxy<Guard<S, T>, T> access() {
-        return new Proxy<Guard<S, T>, T>() {
+        return new Proxy<Guard<S, T>, T>()
+        {
             @Override
             Guard<S, T> copy(T item, InternalConfiguration configuration) {
                 return new Guard<>(proxy.copy(item).access(), error);
