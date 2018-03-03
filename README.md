@@ -253,7 +253,7 @@ A class responsible for the Chain API configuration, like debugging mode, and Lo
     Step 2. Add the dependency
     
 	dependencies {
-		compile 'com.github.Ahmed-Adel-Ismail:J-Chain:1.1.0'
+		compile 'com.github.Ahmed-Adel-Ismail:J-Chain:1.1.1'
 	}
 
                 
