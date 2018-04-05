@@ -143,6 +143,10 @@ public class Optional<T> implements
         }
     }
 
+    public Maybe<T> toMaybe() {
+        return (chain.item != null) ? Maybe.just(chain.item) : Maybe.<T>empty();
+    }
+
     /**
      * start logging operation with the passed tag, to see the logs active, you should
      * set {@link ChainConfiguration#setLogging(boolean)} to {@code true}, and you should

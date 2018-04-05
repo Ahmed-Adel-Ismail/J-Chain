@@ -530,6 +530,26 @@ public class OptionalTest {
     }
 
     @Test
+    public void toMaybeWithNullItemThenReturnEmptyMaybe(){
+        boolean result = Chain.optional((Integer)null)
+                .toMaybe()
+                .isEmpty()
+                .blockingGet();
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void toMaybeWithNonNullItemThenReturnNonEmptyMaybe(){
+        boolean result = Chain.optional(10)
+                .toMaybe()
+                .isEmpty()
+                .blockingGet();
+
+        assertFalse(result);
+    }
+
+    @Test
     public void runOptionalProxyTesterWithNonNullValue() {
         Optional<Integer> optional = new Optional<>(0, InternalConfiguration
                 .getInstance("runOptionalProxyTesterWithNonNullValue"));
