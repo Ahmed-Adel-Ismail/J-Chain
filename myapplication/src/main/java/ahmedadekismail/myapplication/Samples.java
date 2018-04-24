@@ -1,6 +1,8 @@
 package ahmedadekismail.myapplication;
 
 import com.chaining.Chain;
+import com.functional.curry.RxBiFunction;
+import com.functional.curry.RxFunction;
 
 import org.javatuples.Pair;
 
@@ -124,4 +126,19 @@ public class Samples {
 
     }
 
+    RxBiFunction<Integer, Integer, String> concatenateTwoNumbers() {
+        return intOne -> intTwo -> intOne + " and " + intTwo;
+    }
+
+
+
+}
+
+
+class ConcatenateTwoNumbers implements RxBiFunction<Integer, Integer, String> {
+
+    @Override
+    public RxFunction<Integer, String> apply(Integer intOne) {
+        return intTwo -> intOne + " and " + intTwo;
+    }
 }
