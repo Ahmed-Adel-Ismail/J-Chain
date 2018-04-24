@@ -680,7 +680,6 @@ public class ChainTest {
 
         new ProxyTester<>(chain, 1).run();
     }
-
 }
 
 

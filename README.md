@@ -158,6 +158,7 @@ A summery of the Operations that can be invoked while using Chain Types, some op
 	onErrorMap(Object) : convert the stored item if the guard() or guardMap() operations failed
 	defaultIfEmpty(Object) : update the stored item with the passed Object if the stored item is null
 	call() : retrieve the stored item
+	callOrCrash() : retrieve the stored item if not null, else it will throw NoSuchElementException
 	and(Object) : append an Object to the current Object in a list, and return a Collector to handle multiple items
 	collect(Class<?>) : if the current Chain holds a List of items, this method will create a Collector that holds those items in a List, if the Chain had one item, it will create a Collector that holds a List of items that holds only this item
 	log(Object) : start a Logger Object that is configured through ChainConfiguration class, with the passed parameter as the Log tag 
@@ -168,7 +169,8 @@ A summery of the Operations that can be invoked while using Chain Types, some op
 	whenNot(Predicate) : the passed Predicate will take the stored item as it's parameter, and should return a boolean value, if the returned boolean is false, the next Conditional function will execute, else it will be ignored
 	whenIn(Collection) : if the stored item is present in the passed Collection, the next Conditional function will execute, else it will be ignored
 	whenNotIn(Collection) : if the stored item is NOT present in the passed Collection, the next Conditional function will execute, else it will be ignored
-	
+	whenEmpty() : if the stored item is null, the next Conditional function will execute, else it will be ignored
+	whenNotEmpty() : if the stored item is not null, the next Conditional function will execute, else it will be ignored
 	
 # Condition API 
 
@@ -251,7 +253,7 @@ A class responsible for the Chain API configuration, like debugging mode, and Lo
     Step 2. Add the dependency
     
 	dependencies {
-		compile 'com.github.Ahmed-Adel-Ismail:J-Chain:1.1.2'
+		compile 'com.github.Ahmed-Adel-Ismail:J-Chain:1.2.0'
 	}
 
                 

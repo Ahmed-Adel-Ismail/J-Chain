@@ -3,6 +3,7 @@ package com.chaining;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 
 import io.reactivex.annotations.NonNull;
@@ -61,6 +62,29 @@ public class OptionalTest {
                         throw new UnsupportedOperationException();
                     }
                 });
+    }
+
+    @Test
+    public void callOrCrashWithNotEmptyOptionalThenReturnStoredItem() {
+
+        TestClass testClass = Chain.optional(new TestClass())
+                .apply(new Consumer<TestClass>() {
+                    @Override
+                    public void accept(TestClass testClass) {
+                        testClass.text = "1";
+                    }
+                })
+                .callOrCrash();
+
+        assertEquals("1", testClass.text);
+    }
+
+
+    @Test(expected = NoSuchElementException.class)
+    public void callOrCrashWithNotEmptyOptionalThenThrowNoSuchElement() {
+
+        TestClass testClass = Chain.<TestClass>optional(null)
+                .callOrCrash();
     }
 
     @Test
@@ -482,6 +506,18 @@ public class OptionalTest {
     }
 
     @Test
+    public void whenNotInWithNullItemThenReturnInValidCondition() {
+
+        boolean result = Chain.optional((Integer)null)
+                .whenNotIn(Arrays.asList(0, 1, 2, 3, 4))
+                .thenTo(true)
+                .defaultIfEmpty(false)
+                .call();
+
+        assertFalse(result);
+    }
+
+    @Test
     public void whenNotInWithInValidCollectionThenReturnValidCondition() {
 
         boolean result = Chain.optional(0)
@@ -491,6 +527,26 @@ public class OptionalTest {
                 .call();
 
         assertTrue(result);
+    }
+
+    @Test
+    public void toMaybeWithNullItemThenReturnEmptyMaybe(){
+        boolean result = Chain.optional((Integer)null)
+                .toMaybe()
+                .isEmpty()
+                .blockingGet();
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void toMaybeWithNonNullItemThenReturnNonEmptyMaybe(){
+        boolean result = Chain.optional(10)
+                .toMaybe()
+                .isEmpty()
+                .blockingGet();
+
+        assertFalse(result);
     }
 
     @Test

@@ -13,14 +13,16 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-public class GuardTest {
+public class GuardTest
+{
 
 
     @Test
-    public void guardWithSetTextOnTestClassThenFindTextValueUpdated() {
+    public void callWithSetTextOnTestClassThenFindTextValueUpdated() {
 
         final TestClass[] result = {new TestClass()};
-        Guard.call(new Callable<TestClass>() {
+        Guard.call(new Callable<TestClass>()
+        {
             @Override
             public TestClass call() throws Exception {
                 result[0].text = "!";
@@ -32,8 +34,9 @@ public class GuardTest {
     }
 
     @Test
-    public void guardWithExceptionThenDoNotThrowException() {
-        Guard.call(new Callable<TestClass>() {
+    public void callWithExceptionThenDoNotThrowException() {
+        Guard.call(new Callable<TestClass>()
+        {
             @Override
             public TestClass call() throws Exception {
                 throw new UnsupportedOperationException();
@@ -42,15 +45,65 @@ public class GuardTest {
     }
 
     @Test
-    public void onErrorReturnForNonCrashingGuardThenDoNotChangeAnyThing() {
-        TestClass testClass = Guard
-                .call(new Callable<TestClass>() {
+    public void guardWithNonCrashingFunctionForNonCrashingGuardThenReturnTheValue() {
+
+        final TestClass[] result = {new TestClass()};
+        Guard.call(new Callable<TestClass>()
+        {
+            @Override
+            public TestClass call() throws Exception {
+                result[0].text = "!";
+                return result[0];
+            }
+        }).guard(new Function<TestClass, TestClass>()
+        {
+            @Override
+            public TestClass apply(TestClass testClass) throws Exception {
+                result[0].text = "!!";
+                return result[0];
+            }
+        });
+
+        assertEquals("!!", result[0].text);
+    }
+
+    @Test
+    public void guardWithCrashingFunctionForNonCrashingGuardThenReturnError() {
+        TestClass result = Guard
+                .call(new Callable<TestClass>()
+                {
                     @Override
                     public TestClass call() throws Exception {
                         return new TestClass("!");
                     }
                 })
-                .onErrorReturn(new Function<Throwable, TestClass>() {
+                .guard(new Function<TestClass, TestClass>()
+                {
+
+                    @Override
+                    public TestClass apply(TestClass testClass) throws Exception {
+                        throw new UnsupportedOperationException();
+                    }
+                })
+                .onErrorReturnItem(new TestClass("!!"))
+                .call();
+
+        assertEquals("!!", result.text);
+
+    }
+
+    @Test
+    public void onErrorReturnForNonCrashingGuardThenDoNotChangeAnyThing() {
+        TestClass testClass = Guard
+                .call(new Callable<TestClass>()
+                {
+                    @Override
+                    public TestClass call() throws Exception {
+                        return new TestClass("!");
+                    }
+                })
+                .onErrorReturn(new Function<Throwable, TestClass>()
+                {
                     @Override
                     public TestClass apply(@NonNull Throwable throwable) throws Exception {
                         return new TestClass("!!");
@@ -63,13 +116,15 @@ public class GuardTest {
 
     @Test
     public void onErrorReturnForCrashingGuardThenReturnTheValue() {
-        TestClass testClass = Guard.call(new Callable<TestClass>() {
+        TestClass testClass = Guard.call(new Callable<TestClass>()
+        {
             @Override
             public TestClass call() throws Exception {
                 throw new UnsupportedOperationException();
             }
         })
-                .onErrorReturn(new Function<Throwable, TestClass>() {
+                .onErrorReturn(new Function<Throwable, TestClass>()
+                {
                     @Override
                     public TestClass apply(@NonNull Throwable throwable) throws Exception {
                         return new TestClass("!");
@@ -82,12 +137,14 @@ public class GuardTest {
 
     @Test(expected = UnsupportedOperationException.class)
     public void onErrorReturnWithCrashingFunctionThenThrowTheException() {
-        Guard.call(new Callable<TestClass>() {
+        Guard.call(new Callable<TestClass>()
+        {
             @Override
             public TestClass call() throws Exception {
                 throw new UnsupportedOperationException();
             }
-        }).onErrorReturn(new Function<Throwable, TestClass>() {
+        }).onErrorReturn(new Function<Throwable, TestClass>()
+        {
             @Override
             public TestClass apply(@NonNull Throwable throwable) throws Exception {
                 throw new UnsupportedOperationException();
@@ -97,7 +154,8 @@ public class GuardTest {
 
     @Test
     public void onErrorReturnItemForNonCrashingGuardThenDoNotChangeAnyThing() {
-        TestClass testClass = Guard.call(new Callable<TestClass>() {
+        TestClass testClass = Guard.call(new Callable<TestClass>()
+        {
             @Override
             public TestClass call() throws Exception {
                 return new TestClass("!");
@@ -111,7 +169,8 @@ public class GuardTest {
 
     @Test
     public void onErrorReturnItemForCrashingGuardThenReturnTheValue() {
-        TestClass testClass = Guard.call(new Callable<TestClass>() {
+        TestClass testClass = Guard.call(new Callable<TestClass>()
+        {
             @Override
             public TestClass call() throws Exception {
                 throw new UnsupportedOperationException();
@@ -127,12 +186,14 @@ public class GuardTest {
     public void onErrorAcceptForNonCrashingGuardThenChangeNothing() {
 
         final Exception[] result = {null};
-        Guard.call(new Callable<TestClass>() {
+        Guard.call(new Callable<TestClass>()
+        {
             @Override
             public TestClass call() throws Exception {
                 return new TestClass("!");
             }
-        }).onError(new Consumer<Exception>() {
+        }).onError(new Consumer<Exception>()
+        {
 
             @Override
             public void accept(@NonNull Exception e) throws Exception {
@@ -147,12 +208,14 @@ public class GuardTest {
     public void onErrorAcceptForCrashingGuardThenInvokeTheFunction() {
 
         final Exception[] result = {null};
-        Guard.call(new Callable<TestClass>() {
+        Guard.call(new Callable<TestClass>()
+        {
             @Override
             public TestClass call() throws Exception {
                 throw new UnsupportedOperationException();
             }
-        }).onError(new Consumer<Exception>() {
+        }).onError(new Consumer<Exception>()
+        {
 
             @Override
             public void accept(@NonNull Exception e) throws Exception {
@@ -166,12 +229,14 @@ public class GuardTest {
     @Test(expected = UnsupportedOperationException.class)
     public void onErrorAcceptWithCrashingFunctionThenThrowException() {
 
-        Guard.call(new Callable<TestClass>() {
+        Guard.call(new Callable<TestClass>()
+        {
             @Override
             public TestClass call() throws Exception {
                 throw new NullPointerException();
             }
-        }).onError(new Consumer<Exception>() {
+        }).onError(new Consumer<Exception>()
+        {
 
             @Override
             public void accept(@NonNull Exception e) throws Exception {
@@ -183,7 +248,8 @@ public class GuardTest {
 
     @Test
     public void logWithSelfAsSourceThenReturnSelfAsSource() {
-        Guard<?, ?> source = Chain.let(0).guard(new Consumer<Integer>() {
+        Guard<?, ?> source = Chain.let(0).guard(new Consumer<Integer>()
+        {
             @Override
             public void accept(Integer integer) throws Exception {
 
@@ -195,7 +261,8 @@ public class GuardTest {
 
     @Test
     public void logWithStringTagThenReturnLoggerWithThatTag() {
-        Guard<?, ?> source = Chain.let(0).guard(new Consumer<Integer>() {
+        Guard<?, ?> source = Chain.let(0).guard(new Consumer<Integer>()
+        {
             @Override
             public void accept(Integer integer) throws Exception {
 
@@ -208,13 +275,15 @@ public class GuardTest {
     @Test
     public void onErrorMapWithErrorThenReturnAnOptionalWithNewItem() {
         String result = Chain.let(0)
-                .guard(new Consumer<Integer>() {
+                .guard(new Consumer<Integer>()
+                {
                     @Override
                     public void accept(Integer integer) throws Exception {
                         throw new UnsupportedOperationException();
                     }
                 })
-                .onErrorMap(new Function<Throwable, String>() {
+                .onErrorMap(new Function<Throwable, String>()
+                {
                     @Override
                     public String apply(Throwable throwable) throws Exception {
                         return "!";
@@ -228,13 +297,15 @@ public class GuardTest {
     @Test
     public void onErrorMapWithNoErrorThenReturnEmptyOptional() {
         String result = Chain.let(0)
-                .guard(new Consumer<Integer>() {
+                .guard(new Consumer<Integer>()
+                {
                     @Override
                     public void accept(Integer integer) throws Exception {
                         // do nothing
                     }
                 })
-                .onErrorMap(new Function<Throwable, String>() {
+                .onErrorMap(new Function<Throwable, String>()
+                {
                     @Override
                     public String apply(Throwable throwable) throws Exception {
                         return "!";
@@ -249,7 +320,8 @@ public class GuardTest {
     @Test
     public void onErrorMapItemWithErrorThenReturnAnOptionalWithNewItem() {
         String result = Chain.let(0)
-                .guard(new Consumer<Integer>() {
+                .guard(new Consumer<Integer>()
+                {
                     @Override
                     public void accept(Integer integer) throws Exception {
                         throw new UnsupportedOperationException();
@@ -266,7 +338,8 @@ public class GuardTest {
     @Test
     public void onErrorMapItemWithNoErrorThenReturnEmptyOptional() {
         String result = Chain.let(0)
-                .guard(new Consumer<Integer>() {
+                .guard(new Consumer<Integer>()
+                {
                     @Override
                     public void accept(Integer integer) throws Exception {
                         // do nothing
@@ -282,13 +355,15 @@ public class GuardTest {
     @Test(expected = UnsupportedOperationException.class)
     public void onErrorMapWithErrorAndCrashInMapperFunctionThenThrowException() {
         Chain.let(0)
-                .guard(new Consumer<Integer>() {
+                .guard(new Consumer<Integer>()
+                {
                     @Override
                     public void accept(Integer integer) throws Exception {
                         throw new UnsupportedOperationException();
                     }
                 })
-                .onErrorMap(new Function<Throwable, String>() {
+                .onErrorMap(new Function<Throwable, String>()
+                {
                     @Override
                     public String apply(Throwable throwable) throws Exception {
                         throw new UnsupportedOperationException();
@@ -300,13 +375,15 @@ public class GuardTest {
     @Test
     public void applyWithNoErrorInGuardThenInvokeApplyFunction() {
         Boolean[] result = Chain.let(new Boolean[]{false})
-                .guard(new Consumer<Boolean[]>() {
+                .guard(new Consumer<Boolean[]>()
+                {
                     @Override
                     public void accept(Boolean[] booleans) throws Exception {
                         // do nothing
                     }
                 })
-                .apply(new Consumer<Boolean[]>() {
+                .apply(new Consumer<Boolean[]>()
+                {
                     @Override
                     public void accept(Boolean[] booleans) throws Exception {
                         booleans[0] = true;
@@ -321,13 +398,15 @@ public class GuardTest {
     @Test
     public void applyWithErrorInGuardThenDoNotInvokeApplyFunction() {
         Boolean[] result = Chain.let(new Boolean[]{false})
-                .guard(new Consumer<Boolean[]>() {
+                .guard(new Consumer<Boolean[]>()
+                {
                     @Override
                     public void accept(Boolean[] booleans) throws Exception {
                         throw new UnsupportedOperationException();
                     }
                 })
-                .apply(new Consumer<Boolean[]>() {
+                .apply(new Consumer<Boolean[]>()
+                {
                     @Override
                     public void accept(Boolean[] booleans) throws Exception {
                         booleans[0] = true;
@@ -341,7 +420,8 @@ public class GuardTest {
 
     @Test
     public void runGuardProxyTester() {
-        Guard<?, Integer> guard = Guard.call(new Callable<Integer>() {
+        Guard<?, Integer> guard = Guard.call(new Callable<Integer>()
+        {
             @Override
             public Integer call() throws Exception {
                 return 0;

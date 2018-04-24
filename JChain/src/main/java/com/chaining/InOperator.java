@@ -35,7 +35,8 @@ class InOperator<T> implements Predicate<T> {
 
     @Override
     public boolean test(T item) {
-        return !collection.isEmpty() &&
+        return item != null &&
+                !collection.isEmpty() &&
                 new Chain<>(collection, configuration)
                         .apply(removeNulls())
                         .flatMap(toObservableFromIterable())
