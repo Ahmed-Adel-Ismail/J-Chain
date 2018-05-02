@@ -294,9 +294,22 @@ public class Optional<T> implements
      */
     @NonNull
     public T callOrCrash() throws NoSuchElementException {
+        return callOrCrash("no item stored in the current " +
+                Optional.class.getSimpleName());
+    }
+
+    /**
+     * retrieve the item stored in this {@link Optional} if not empty, if this {@link Optional}
+     * is empty, this method will throw {@link NoSuchElementException}
+     *
+     * @param crashMessage the message displayed in the thrown {@link NoSuchElementException}
+     * @return the item stored in this {@link Optional} if available
+     * @throws NoSuchElementException if no item is stored in this {@link Optional}
+     */
+    @NonNull
+    public T callOrCrash(String crashMessage) throws NoSuchElementException {
         if (chain.item == null) {
-            throw new NoSuchElementException("no item stored in the current " +
-                    Optional.class.getSimpleName());
+            throw new NoSuchElementException(crashMessage);
         }
         return chain.item;
     }
