@@ -1,7 +1,9 @@
 package com.chaining;
 
 import com.chaining.interfaces.And;
+import com.chaining.interfaces.Functor;
 import com.chaining.interfaces.Monad;
+import com.functional.curry.Invoker;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -22,7 +24,8 @@ import io.reactivex.functions.Function;
 public class Collector<T> implements
         Internal<Collector<T>, List<T>>,
         And<T>,
-        Monad<List<T>> {
+        Monad<List<T>>,
+        Functor<T> {
 
     final List<T> items = new LinkedList<>();
     private final InternalConfiguration configuration;

@@ -4,8 +4,10 @@ package com.chaining;
 import com.chaining.annotations.SideEffect;
 import com.chaining.interfaces.And;
 import com.chaining.interfaces.DefaultIfEmpty;
+import com.chaining.interfaces.Functor;
 import com.chaining.interfaces.Monad;
 import com.functional.curry.Curry;
+import com.functional.curry.Invoker;
 
 import org.javatuples.Pair;
 
@@ -41,7 +43,8 @@ public class Chain<T> implements
         Function<Consumer<T>, Chain<T>>,
         DefaultIfEmpty<T>,
         And<T>,
-        Monad<T> {
+        Monad<T>,
+        Functor<T> {
 
     final T item;
     final InternalConfiguration configuration;

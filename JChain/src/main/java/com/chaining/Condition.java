@@ -2,6 +2,7 @@ package com.chaining;
 
 
 import com.chaining.annotations.SideEffect;
+import com.functional.curry.Invoker;
 
 import java.util.concurrent.Callable;
 

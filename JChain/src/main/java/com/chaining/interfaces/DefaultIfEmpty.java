@@ -13,8 +13,7 @@ import io.reactivex.annotations.NonNull;
 public interface DefaultIfEmpty<T> {
 
     /**
-     * if the root item is converted to null due to any operation (like map() for example),
-     * this function will set it to a new default value
+     * if the root item is null, this function will set it to a new default value
      *
      * @param defaultValue the default value if the Object is {@code null}
      * @return a new {@link Chain} with the default value, if the current {@link Chain} was broken

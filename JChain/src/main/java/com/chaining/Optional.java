@@ -2,6 +2,8 @@ package com.chaining;
 
 
 import com.chaining.interfaces.DefaultIfEmpty;
+import com.chaining.interfaces.Functor;
+import com.functional.curry.Invoker;
 
 import java.util.Collection;
 import java.util.NoSuchElementException;
@@ -28,7 +30,8 @@ public class Optional<T> implements
         Conditional<Optional<T>, T>,
         Internal<Optional<T>, T>,
         Function<Consumer<T>, Optional<T>>,
-        DefaultIfEmpty<T> {
+        DefaultIfEmpty<T>,
+        Functor<T>{
 
     private final Chain<T> chain;
 

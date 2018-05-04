@@ -21,7 +21,7 @@ public class MainActivityTest {
                     }
                 })
                 .and(20)
-                .collect()
+                .toList()
                 .call();
     }
 

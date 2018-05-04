@@ -1,5 +1,7 @@
 package com.chaining;
 
+import com.functional.curry.Invoker;
+
 import org.junit.Test;
 
 import java.io.IOException;
