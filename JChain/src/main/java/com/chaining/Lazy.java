@@ -60,20 +60,9 @@ public class Lazy<T> implements Callable<T>, Monad<T>, Functor<T>, Function<Cons
     }
 
     /**
-     * lazily convert the item stored in this {@link Lazy} into another {@link Lazy} ...
-     * the new {@link Lazy} will not initialize itself unless it's {@link #call()} or
-     * {@link #flatMap(Function)} is invoked ... so you can invoke multiple map operations on an
-     * un-initialized {@link Lazy}, and all of them will initialize them selves when you invoke the
-     * {@link #call()} method, for example :
-     * <p>
-     * <p>
-     * Lazy.defer(() -> requestInteger())<br>
-     * .map(requestedInteger -> requestString(requestedInteger))<br>
-     * .map(requestedString -> convertToJson(requestedString))<br>
-     * .call();     // all actions are invoked at this step
-     * <p>
-     * if the current item was not initialized tey, it will be initialized when the new {@link Lazy}
-     * calls it's {@link #call()} ... if it is already initialized, the new {@link Lazy} will not
+     * convert the item stored in this {@link Lazy} into another item, notice that this operation
+     * will not take effect until the {@link #call()} or {@link #flatMap(Function)} method is
+     * executed
      *
      * @param mapper the lazy converter {@link Function} that will convert the stored item
      *               (or the item that will be initialized) into another item when the {@link #call()}
