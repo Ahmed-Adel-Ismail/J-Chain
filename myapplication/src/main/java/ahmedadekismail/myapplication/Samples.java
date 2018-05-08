@@ -1,18 +1,7 @@
 package ahmedadekismail.myapplication;
 
-import com.chaining.Chain;
 import com.functional.curry.RxBiFunction;
 import com.functional.curry.RxFunction;
-
-import org.javatuples.Pair;
-import org.junit.Ignore;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import io.reactivex.Observable;
-import io.reactivex.functions.Consumer;
 
 /**
  * Created by Ahmed Adel Ismail on 11/12/2017.
