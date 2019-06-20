@@ -1,7 +1,6 @@
 package com.chaining;
 
 
-import com.chaining.annotations.SideEffect;
 import com.functional.curry.Invoker;
 
 import java.util.concurrent.Callable;
@@ -74,7 +73,6 @@ public class Condition<S extends Conditional<S, T>, T> implements Internal<Condi
      * @return the {@link Chain} with the updated state (if the {@link Predicate} returned
      * {@code true}, or will return it with no updates
      */
-    @SideEffect("usually this operation is done for side-effects")
     public S invoke(Action action) {
         if (isSourceChainUpdateAccepted()) Invoker.invoke(action);
         return sourceProxy.owner();

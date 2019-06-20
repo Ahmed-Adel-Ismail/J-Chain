@@ -3,11 +3,11 @@ apply plugin: 'com.github.dcendents.android-maven'
 group = 'com.github.Ahmed-Adel-Ismail'
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'io.reactivex.rxjava2:rxjava:2.1.10'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'io.reactivex.rxjava2:rxjava:2.2.7'
     compile 'org.javatuples:javatuples:1.2'
-    compile 'com.github.Ahmed-Adel-Ismail.J-Curry:currying:2.0.0'
-    testCompile 'junit:junit:4.12'
+    implementation 'com.github.Ahmed-Adel-Ismail.J-Curry:currying:2.0.0'
+    testImplementation 'junit:junit:4.12'
 }
 
 sourceCompatibility = "1.7"

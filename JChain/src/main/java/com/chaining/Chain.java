@@ -1,7 +1,6 @@
 package com.chaining;
 
 
-import com.chaining.annotations.SideEffect;
 import com.chaining.interfaces.And;
 import com.chaining.interfaces.DefaultIfEmpty;
 import com.chaining.interfaces.Functor;
@@ -335,7 +334,6 @@ public class Chain<T> implements
      * @param action an {@link Action} to be executed
      * @return {@code this} instance for chaining
      */
-    @SideEffect("usually this operation is done for side-effects")
     public Chain<T> invoke(Action action) {
         Invoker.invoke(action);
         return new Chain<>(item, configuration);
